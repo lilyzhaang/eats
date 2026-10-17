@@ -28,31 +28,6 @@ export function getCurrentWeek(): Week | null {
 	);
 }
 
-export type OfferSummary = {
-	id: number;
-	slot: string;
-	letter: string;
-	from_bank: number;
-	is_final_pick: number;
-	recipe_name: string;
-	cuisine: string;
-	total_minutes: number | null;
-	servings: number | null;
-};
-
-/** Every option offered in a week, in slot and letter order. */
-export function getOffers(weekId: number): OfferSummary[] {
-	return getDb()
-		.prepare(
-			`SELECT o.id, o.slot, o.letter, o.from_bank, o.is_final_pick,
-			        r.name AS recipe_name, r.cuisine, r.total_minutes, r.servings
-			 FROM offers o JOIN recipes r ON r.id = o.recipe_id
-			 WHERE o.week_id = ?
-			 ORDER BY o.slot, o.letter`
-		)
-		.all(weekId) as OfferSummary[];
-}
-
 /** "2026-10-18" → "Oct 18" */
 export function formatWeekOf(isoDate: string): string {
 	const [year, month, day] = isoDate.split('-').map(Number);

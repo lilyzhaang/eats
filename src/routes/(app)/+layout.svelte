@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
 	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
 	import Icon from '#lib/components/Icon.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -17,7 +18,15 @@
 	] as const;
 
 	let menuOpen = $state(false);
+
+	// When you come back to the app (switch tabs, unlock your phone), reload the
+	// data so you see what the other person picked or checked off meanwhile.
+	function refreshIfVisible() {
+		if (document.visibilityState === 'visible') invalidateAll();
+	}
 </script>
+
+<svelte:document onvisibilitychange={refreshIfVisible} />
 
 <div class="shell">
 	<header class="topbar">
