@@ -1,0 +1,184 @@
+/*
+  Global styles for Eats. Colors and type come from §9 of CLAUDE.md
+  and the mockups in docs/mockups/. Change a color here and it changes everywhere.
+*/
+
+:root {
+	/* Surfaces */
+	--bg: #f4f2ee;
+	--surface: #fbfaf7;
+	--card: #ffffff;
+	--border: #e3ddd3;
+
+	/* Text */
+	--ink: #1f2421;
+	--ink-secondary: #5c615d;
+	--accent: #9a3a17; /* paprika */
+
+	/* Source tags */
+	--tag-ai-bg: #e8eef7;
+	--tag-ai-ink: #1f4170;
+	--tag-bank-bg: #f7e7dd;
+	--tag-bank-ink: #8a3414;
+
+	/* Equipment tags */
+	--tag-oven-bg: #f7e7dd;
+	--tag-oven-ink: #8a3414;
+	--tag-burner-bg: #e8eef7;
+	--tag-burner-ink: #1f4170;
+	--tag-hands-bg: #eef3e6;
+	--tag-hands-ink: #3c5520;
+
+	/* Dark callout panels */
+	--callout-bg: #1f2421;
+	--callout-ink: #fbfaf7;
+
+	--radius: 12px;
+	--font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
+	--font-body: 'Figtree', system-ui, sans-serif;
+
+	color-scheme: light;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font-body);
+	font-size: 16px;
+	line-height: 1.5;
+	-webkit-text-size-adjust: 100%;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-heading);
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.01em;
+	margin: 0 0 8px;
+}
+h1 {
+	font-size: clamp(1.75rem, 6vw, 2.5rem);
+}
+h2 {
+	font-size: 1.375rem;
+}
+
+a {
+	color: var(--accent);
+}
+
+code {
+	font-size: 0.9em;
+}
+
+/* Small caps label above a heading: "PICK · WEEK OF OCT 18" */
+.eyebrow {
+	color: var(--accent);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	margin: 0 0 8px;
+}
+
+.muted {
+	color: var(--ink-secondary);
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+/* Form fields */
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 10px 12px;
+	min-height: 44px;
+	width: 100%;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* Pill buttons, at least 44px tall so they're easy to tap */
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0 22px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: var(--card);
+	color: var(--ink);
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+}
+.button.primary {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: var(--callout-ink);
+}
+
+/* Small rounded labels: NEW · AI PICK, RECIPE BANK, OVEN, BURNER 1 … */
+.tag {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+.tag.ai {
+	background: var(--tag-ai-bg);
+	color: var(--tag-ai-ink);
+}
+.tag.bank {
+	background: var(--tag-bank-bg);
+	color: var(--tag-bank-ink);
+}
+
+/* Dark panel used for "How to pick" style callouts */
+.callout {
+	background: var(--callout-bg);
+	color: var(--callout-ink);
+	border-radius: var(--radius);
+	padding: 20px;
+}
+.callout h2,
+.callout h3 {
+	color: var(--callout-ink);
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}

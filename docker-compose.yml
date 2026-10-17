@@ -1,0 +1,17 @@
+# Run Eats with one command:  docker compose up -d
+#
+# Before the first run, create a .env file next to this one (copy .env.example)
+# with real passcodes and ORIGIN set to the address people will use.
+
+services:
+  eats:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file: .env
+    environment:
+      DATABASE_PATH: /data/eats.db
+    volumes:
+      # The database file lives here on the host machine. Back up this folder.
+      - ./data:/data

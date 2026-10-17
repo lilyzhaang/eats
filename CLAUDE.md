@@ -313,7 +313,7 @@ Mockups exist as a Claude design canvas ("Meal Prep Emails") with four artboards
 
 ---
 
-## 10. Technical direction (proposed — confirm before building)
+## 10. Technical direction (stack confirmed Oct 17, 2026 — see §14)
 
 Goals: easy for Lily to run and understand, cheap or free to host now, **easy to move onto Andrei's server later**.
 
@@ -445,4 +445,8 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Sign-in = emailed app link + passcode + persona dropdown; one owner passcode (Lily + Andrei), one viewer-only passcode | Simple, no accounts to manage; the viewer passcode can be shared without giving edit access |
 | Three personas: Lily, Andrei, Viewer (read-only) | A safe way to show the app to others; room to add more later |
 | Never send anything on Lily's behalf without explicit permission | Lily's standing rule |
+| Stack: SvelteKit 3 (screens + server in one project) + SQLite via Node's built-in `node:sqlite`, packaged with Docker | Most readable for a non-engineer; no database server to install; portable to Andrei's server. Confirmed Oct 17, 2026 |
+| Own small server, not a hosted backend (Supabase/Firebase) | Shared data and server-enforced viewer rules need a server; avoids vendor lock-in |
+| Two environments only: dev (Lily's Mac, sample data) and live. No staging | Household app; the rule is just that they never share a database |
+| The three personas are created by a migration (`002_default_personas.sql`), not the sample-data seed | Every database, including the live one, needs them to sign in |
 
