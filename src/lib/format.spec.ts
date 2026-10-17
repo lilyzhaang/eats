@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatQuantity } from './format.ts';
+import { formatClock, formatDuration, formatQuantity } from './format.ts';
 
 describe('formatQuantity', () => {
 	it('matches how the grocery-list mockup reads', () => {
@@ -12,5 +12,14 @@ describe('formatQuantity', () => {
 		expect(formatQuantity(1, 'bunch')).toBe('1 bunch');
 		expect(formatQuantity(3, 'tbsp')).toBe('3 tbsp');
 		expect(formatQuantity(null, 'to taste')).toBe('to taste');
+	});
+});
+
+describe('formatClock and formatDuration', () => {
+	it('reads like the prep-plan mockup', () => {
+		expect(formatClock(0)).toBe('0:00');
+		expect(formatClock(85)).toBe('1:25');
+		expect(formatDuration(95)).toBe('1 hr 35');
+		expect(formatDuration(40)).toBe('40 min');
 	});
 });

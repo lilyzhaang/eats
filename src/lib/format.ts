@@ -36,3 +36,16 @@ export function formatQuantity(quantity: number | null, unit: string): string {
 	const word = quantity > 1 ? plural : singular;
 	return word ? `${formatNumber(quantity)} ${word}` : formatNumber(quantity);
 }
+
+/** Minutes from the start of cook day → clock style: 0 → "0:00", 95 → "1:35". */
+export function formatClock(minutes: number): string {
+	return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+/** 95 → "1 hr 35", 40 → "40 min", 60 → "1 hr". */
+export function formatDuration(minutes: number): string {
+	const hours = Math.floor(minutes / 60);
+	const rest = minutes % 60;
+	if (hours === 0) return `${rest} min`;
+	return rest === 0 ? `${hours} hr` : `${hours} hr ${rest}`;
+}
