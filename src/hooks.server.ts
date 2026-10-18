@@ -5,8 +5,14 @@
 //      so hiding buttons in the browser isn't the only protection.
 
 import { error, redirect } from '@sveltejs/kit';
-import type { Handle } from '@sveltejs/kit/hooks';
+import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+import { startSchedule } from '#lib/server/ai/schedule.ts';
 import { getSessionUser, SESSION_COOKIE } from '#lib/server/auth.ts';
+
+// When the server starts: begin the once-a-minute check for the Saturday menu.
+export const init: ServerInit = () => {
+	startSchedule();
+};
 
 // Pages you can open without being signed in.
 const PUBLIC_PATHS = ['/signin'];

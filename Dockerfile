@@ -23,6 +23,8 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 # The app applies these to the database when it starts.
 COPY migrations ./migrations
+# Claude's instructions for writing menus and prep plans.
+COPY prompts ./prompts
 
 # The database lives on a volume, so it survives updates to the app.
 # The app runs as the unprivileged "node" user, which needs to own /data.

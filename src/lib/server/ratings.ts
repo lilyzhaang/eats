@@ -37,16 +37,27 @@ export type Debrief = {
 	stats: { recipesRated: number; inRecipeBank: number; mostPicked: string | null };
 };
 
-/** The week to debrief: the most recent one whose picks were locked in. */
+/**
+ * The week to debrief: the most recent finished week (a week finishes when
+ * the next week's menu is approved). Before any week has finished, the most
+ * recent locked-in one.
+ */
 export function getRateWeek(): Week | null {
+	const withPicks =
+		'is_draft = 0 AND EXISTS (SELECT 1 FROM offers WHERE week_id = weeks.id AND is_final_pick = 1)';
+	const db = getDb();
 	return (
-		(getDb()
+		(db
 			.prepare(
-				`SELECT * FROM weeks WHERE status IN ('locked', 'done')
-				 AND EXISTS (SELECT 1 FROM offers WHERE week_id = weeks.id AND is_final_pick = 1)
-				 ORDER BY week_of DESC LIMIT 1`
+				`SELECT * FROM weeks WHERE status = 'done' AND ${withPicks} ORDER BY week_of DESC LIMIT 1`
 			)
-			.get() as Week | undefined) ?? null
+			.get() as Week | undefined) ??
+		(db
+			.prepare(
+				`SELECT * FROM weeks WHERE status = 'locked' AND ${withPicks} ORDER BY week_of DESC LIMIT 1`
+			)
+			.get() as Week | undefined) ??
+		null
 	);
 }
 

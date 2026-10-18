@@ -42,6 +42,18 @@ You need [Node.js](https://nodejs.org) 24 or newer. Check with `node -v`.
 
    Open <http://localhost:5173>, choose who you are, and enter a passcode from your `.env` file. The page updates by itself as code changes. Press `Ctrl+C` in the terminal to stop the app.
 
+## Claude writes the menu
+
+Every **Saturday at 9:00 AM Eastern**, the app asks Claude for next week's options. Claude sees your ratings, tweaks, "Never" recipes, recent meals, cravings and the season, and writes new recipes (in its own words) with ingredients matched to your ingredient list. Recipe-bank favourites are chosen by the app. The menu arrives as a **draft**: owners see a banner, open **Next week's menu**, swap anything they don't fancy, and approve it. Only then does it appear on Pick.
+
+When you both lock in your picks, Claude writes the **prep-day plan** for those four recipes, following the rules in `prompts/prep-plan.md`.
+
+- Claude's instructions are plain text in [`prompts/`](prompts/). Edit them like any document.
+- Turn it on by setting `ANTHROPIC_API_KEY` (from [console.anthropic.com](https://console.anthropic.com)) in `.env`. Set `MENU_SCHEDULE=on` on the live server; on your Mac, leave it off and use the **Make next week's menu now** button instead.
+- The day and time live in the `settings` table (`menu_day`, `menu_time`, `menu_timezone`).
+- Every request is logged in the `ai_runs` table with its token use. A full menu has cost about $0.66 (Claude Opus 5.5); a prep plan costs less.
+- If Claude's answer arrives but can't be saved, trying again reuses it instead of paying twice.
+
 ## Everyday commands
 
 | Command                          | What it does                                                                           |
@@ -57,18 +69,21 @@ You need [Node.js](https://nodejs.org) 24 or newer. Check with `node -v`.
 
 ```
 migrations/           Database tables, one numbered file per change. Never edit an old one; add a new file.
+prompts/              Claude's instructions for writing menus and prep plans.
 scripts/              The db:reset and db:migrate commands.
 src/
   env.ts              The settings the app reads (passcodes, database location).
   hooks.server.ts     Runs before every request: who's signed in, and blocking viewers from changing things.
   app.css             Colors, fonts and shared styles (from the design brief).
   lib/server/         Code that only runs on the server: database, sign-in, queries.
+    ai/               Talking to Claude: the weekly menu, swaps, prep plans, the Saturday schedule.
   lib/components/     Reusable pieces of screen (icons, cards…).
   routes/             One folder per page. The folder name is the web address.
     signin/           Passcode + "Who are you?"
     switch/           Switch person
     (app)/            The four main screens and the tab bar around them
       pick/ shop/ cook/ rate/
+      review/         Next week's menu from Claude, before it opens for picking (owners only)
 docs/                 The spreadsheet and mockups the app is based on.
 ```
 

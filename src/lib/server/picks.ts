@@ -9,6 +9,7 @@
 
 import { getDb } from './app-db.ts';
 import { transaction } from './db/index.ts';
+import { ensurePrepPlan } from './ai/plan-writer.ts';
 import { SLOTS, type Week } from './weeks.ts';
 
 export type Owner = { id: number; name: string; initials: string };
@@ -160,6 +161,10 @@ export function savePick(week: Week, personaId: number, offerId: number): boolea
 
 		updateLockIn(week);
 	});
+
+	// Once all four agree, have Claude write the prep-day plan (in the background).
+	const updated = db.prepare('SELECT * FROM weeks WHERE id = ?').get(week.id) as Week;
+	ensurePrepPlan(updated, 'lock_in');
 	return true;
 }
 

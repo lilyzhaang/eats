@@ -358,7 +358,7 @@ Open question for Andrei: what will his server run (Docker? which OS? a database
 - Opt-in email nudges (§5).
 
 **Phase 3 — Automation**
-- Weekly job that drafts next week's menu: new AI picks (using cravings, variety and cuisine balance) plus recipe-bank favourites. It lands as a **draft week** that Lily approves before it goes live.
+- ~~Weekly job that drafts next week's menu~~ (done early, Oct 17, 2026; see §14): new AI picks (using cravings, variety and cuisine balance) plus recipe-bank favourites. It lands as a **draft week** that Lily approves before it goes live.
 - Ingredient and step structuring for new recipes, mapped onto the catalog, with review for new catalog entries.
 - Move to Andrei's server.
 
@@ -449,4 +449,12 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Own small server, not a hosted backend (Supabase/Firebase) | Shared data and server-enforced viewer rules need a server; avoids vendor lock-in |
 | Two environments only: dev (Lily's Mac, sample data) and live. No staging | Household app; the rule is just that they never share a database |
 | The three personas are created by a migration (`002_default_personas.sql`), not the sample-data seed | Every database, including the live one, needs them to sign in |
+| Claude writes next week's menu automatically every Saturday 9:00 AM Eastern (moved up from phase 3); no import page | Lily wants new recipes delivered to the app without copy-pasting. Decided Oct 17, 2026 |
+| The menu lands as a draft that an owner reviews (swap any option, approve, or discard) before it opens for picking | Matches §11's "draft week that Lily approves"; drafts are hidden from viewers |
+| Claude writes the prep-day plan automatically when the picks lock in; rewritten if the picks change | Replaces importing plans by hand |
+| Claude is called from the app's server (Claude API, Opus 5.5, structured outputs); prompts live in `prompts/` | Keeps everything in one portable app; no separate scheduler service |
+| Recipe-bank favourites are chosen by the app (avg ≥ 4, picked ≥ half the times offered, not made in 3 weeks); Claude fills any gap | Rule from §7.5; Claude only writes new recipes |
+| One person's "Never" is enough to stop suggesting a recipe | Resolves the open question in §7.3 |
+| Rate shows the most recent finished week (a week finishes when the next menu is approved) | So the debrief happens after cooking, not right at lock-in |
+| Every Claude request is logged with token use; an answer that can't be saved is reused on retry | Cost visibility; never pay twice for one answer |
 

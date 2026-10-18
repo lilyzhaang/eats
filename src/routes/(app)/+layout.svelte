@@ -60,6 +60,9 @@
 			{#if menuOpen}
 				<div class="menu card">
 					<p class="muted">Signed in as <strong>{data.user.name}</strong></p>
+					{#if data.user.role === 'owner'}
+						<a class="button" href="/review" onclick={() => (menuOpen = false)}>Next week’s menu</a>
+					{/if}
 					<!-- Owner-passcode sessions can switch freely; viewer sessions sign in again. -->
 					<a class="button" href={data.user.passcodeKind === 'owner' ? '/switch' : '/signin'}>
 						Switch person
@@ -73,6 +76,12 @@
 	</header>
 
 	<main class="content">
+		{#if data.draftLabel && !page.url.pathname.startsWith('/review')}
+			<a class="draft-banner" href="/review">
+				<strong>Next week’s menu is ready.</strong>
+				<span>Claude’s picks for the week of {data.draftLabel} are waiting for your review →</span>
+			</a>
+		{/if}
 		{@render children()}
 	</main>
 
@@ -151,6 +160,21 @@
 	.menu .button,
 	.menu form button {
 		width: 100%;
+	}
+
+	.draft-banner {
+		display: grid;
+		gap: 2px;
+		margin-bottom: 24px;
+		padding: 14px 16px;
+		border-radius: var(--radius);
+		background: var(--callout-bg);
+		color: var(--callout-ink);
+		text-decoration: none;
+	}
+	.draft-banner span {
+		opacity: 0.85;
+		font-size: 0.9375rem;
 	}
 
 	.content {

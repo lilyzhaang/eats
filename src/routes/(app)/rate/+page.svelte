@@ -34,7 +34,9 @@
 				{meal}
 				{myId}
 				saved={form?.savedOfferId === meal.offerId}
-				error={form && 'offerId' in form && form.offerId === meal.offerId ? (form.message ?? null) : null}
+				error={form && 'offerId' in form && form.offerId === meal.offerId
+					? (form.message ?? null)
+					: null}
 			/>
 		{/each}
 	</div>

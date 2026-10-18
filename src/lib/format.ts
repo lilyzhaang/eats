@@ -26,7 +26,9 @@ const UNITS: Record<string, [string, string]> = {
 	bunch: ['bunch', 'bunches'],
 	lb: ['lb', 'lb'],
 	tbsp: ['tbsp', 'tbsp'],
-	tsp: ['tsp', 'tsp']
+	tsp: ['tsp', 'tsp'],
+	oz: ['oz', 'oz'],
+	can: ['can', 'cans']
 };
 
 /** (4, "each") → "4", (7, "clove") → "7 cloves", (null, "to taste") → "to taste". */

@@ -119,8 +119,8 @@ export function seedSampleData(db: DatabaseSync): void {
 		const planId = Number(
 			db
 				.prepare(
-					`INSERT INTO prep_plans (week_id, total_minutes, oven_temp_f, oven_minutes, burners, uses_kettle)
-					 VALUES (?, ?, ?, ?, ?, ?)`
+					`INSERT INTO prep_plans (week_id, total_minutes, oven_temp_f, oven_minutes, burners, uses_kettle, for_recipe_ids)
+					 VALUES (?, ?, ?, ?, ?, ?, ?)`
 				)
 				.run(
 					lookup(weekIds, plan.week_of),
@@ -128,7 +128,9 @@ export function seedSampleData(db: DatabaseSync): void {
 					plan.oven_temp_f,
 					plan.oven_minutes,
 					plan.burners,
-					plan.uses_kettle ? 1 : 0
+					plan.uses_kettle ? 1 : 0,
+					// The sample plan is for the sample week's picks; if they change, Claude rewrites it.
+					finalPickKey(db, lookup(weekIds, plan.week_of))
 				).lastInsertRowid
 		);
 		const insertStep = db.prepare(
@@ -155,6 +157,18 @@ export function seedSampleData(db: DatabaseSync): void {
 	});
 }
 
+/** Sorted recipe ids of a week's final picks, matching ai/plan-writer.ts. */
+function finalPickKey(db: DatabaseSync, weekId: number): string {
+	return (
+		db
+			.prepare(
+				'SELECT recipe_id FROM offers WHERE week_id = ? AND is_final_pick = 1 ORDER BY recipe_id'
+			)
+			.all(weekId) as { recipe_id: number }[]
+	)
+		.map((r) => r.recipe_id)
+		.join(',');
+}
 /** Get an id from a map, or fail loudly if the sample data has a typo. */
 function lookup(map: Map<string, number>, key: string): number {
 	const id = map.get(key);

@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { formatClock, formatDuration } from '#lib/format.ts';
 	import type { Lane } from '#lib/server/prep-plan.ts';
 	import type { PageProps } from './$types';
@@ -12,6 +13,13 @@
 	let { data, form }: PageProps = $props();
 
 	const canCheck = $derived(data.user.role === 'owner');
+
+	// While Claude is writing the plan, check back every 5 seconds.
+	$effect(() => {
+		if (data.reason !== 'writing') return;
+		const timer = setInterval(() => invalidateAll(), 5000);
+		return () => clearInterval(timer);
+	});
 	const done = $derived(data.plan?.steps.filter((s) => s.checkedBy).length ?? 0);
 
 	const laneLabel: Record<Lane, string> = {
@@ -118,6 +126,20 @@
 			{/each}
 		</ol>
 	</form>
+{:else if data.reason === 'writing'}
+	<h1>Claude is planning your cook day…</h1>
+	<p class="working muted" role="status">
+		Weaving your four recipes into one timeline. This usually takes a minute or two, and this page
+		updates by itself.
+	</p>
+{:else if data.reason === 'failed'}
+	<h1>The plan didn’t come through.</h1>
+	<p class="error" role="alert">{data.error}</p>
+	{#if canCheck}
+		<form method="POST" action="?/retry" use:enhance>
+			<button type="submit" class="button primary">Try again</button>
+		</form>
+	{/if}
 {:else if data.reason === 'picking'}
 	<h1>Pick first, then cook.</h1>
 	<p class="muted">The prep-day plan appears once you’ve both agreed on all four meals.</p>
@@ -125,8 +147,8 @@
 {:else}
 	<h1>No plan yet.</h1>
 	<p class="muted">
-		This week’s prep-day plan hasn’t been added. Plans are imported for now; generating them
-		automatically comes later.
+		Claude writes the prep-day plan once you lock in your picks. To turn that on, add your Claude
+		API key to the <code>.env</code> file (<code>ANTHROPIC_API_KEY=</code>) and restart the app.
 	</p>
 {/if}
 

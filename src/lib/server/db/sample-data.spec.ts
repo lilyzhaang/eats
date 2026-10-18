@@ -78,3 +78,17 @@ describe('sample data', () => {
 		).toThrow();
 	});
 });
+
+describe('sample prep plan', () => {
+	it('records which four recipes it was written for', () => {
+		const db = freshDatabase();
+		const plan = db.prepare('SELECT for_recipe_ids FROM prep_plans').get()!;
+		const picks = db
+			.prepare(
+				`SELECT group_concat(recipe_id) AS ids FROM
+				 (SELECT recipe_id FROM offers WHERE week_id = 2 AND is_final_pick = 1 ORDER BY recipe_id)`
+			)
+			.get()!;
+		expect(plan.for_recipe_ids).toBe(picks.ids);
+	});
+});
