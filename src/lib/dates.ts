@@ -37,8 +37,3 @@ export function localTime(timeZone: string, now = new Date()): LocalTime {
 		time: `${parts.hour}:${parts.minute}`
 	};
 }
-
-/** Is it the menu day, at or after the menu time? */
-export function isMenuTime(now: LocalTime, day: string, time: string): boolean {
-	return now.weekday === day.toLowerCase() && now.time >= time;
-}

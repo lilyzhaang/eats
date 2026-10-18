@@ -23,11 +23,6 @@ export const variables = defineEnvVars({
 			'Key for the Claude API (console.anthropic.com). Without it, menus and prep plans are not written.',
 		schema: optionalText
 	},
-	MENU_SCHEDULE: {
-		description:
-			'"on" to have Claude write next week\'s menu every Saturday 9am ET. Off unless set.',
-		schema: (value) => value?.trim().toLowerCase() === 'on'
-	},
 	DATABASE_PATH: {
 		description: 'Where the SQLite database file lives.',
 		schema: (value) => optionalText(value) ?? 'data/eats.db'

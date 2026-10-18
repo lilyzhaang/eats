@@ -93,6 +93,9 @@
 			<div class="actions">
 				<a class="button light" href="/shop">Grocery list</a>
 				<a class="button light" href="/cook">Prep-day plan</a>
+				{#if canPick && !data.draftLabel}
+					<a class="button ghost" href="/review">Plan next week</a>
+				{/if}
 			</div>
 		</div>
 	{:else}
@@ -171,6 +174,11 @@
 		flex-wrap: wrap;
 		gap: 10px;
 		margin-top: 14px;
+	}
+	.button.ghost {
+		background: transparent;
+		color: var(--callout-ink);
+		border-color: rgb(251 250 247 / 0.4);
 	}
 	.button.light {
 		background: var(--callout-ink);

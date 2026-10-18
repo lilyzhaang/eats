@@ -136,14 +136,10 @@
 		by itself.
 	</p>
 {:else}
-	<h1>No menu waiting.</h1>
-	<p class="muted">
-		{#if review.schedule.on}
-			Next week’s menu arrives automatically: {review.schedule.text}.
-		{:else}
-			Automatic menus ({review.schedule.text}) are switched off here. You can ask Claude now
-			instead.
-		{/if}
+	<h1>Ready for next week?</h1>
+	<p class="muted intro">
+		Claude will write a fresh menu for the week of {review.nextWeekLabel}, using your ratings,
+		tweaks and cravings. You’ll review it here before it opens for picking.
 	</p>
 
 	{#if review.lastError}
@@ -152,9 +148,9 @@
 
 	{#if review.claudeReady}
 		<form method="POST" action="?/generate" use:enhance={keepForm}>
-			<button type="submit" class="button primary">Make next week’s menu now</button>
+			<button type="submit" class="button primary">Generate next week’s menu</button>
 		</form>
-		<p class="muted small">Uses a little of your Claude API credit each time.</p>
+		<p class="muted small">Takes a few minutes. Uses about $0.66 of Claude API credit.</p>
 	{:else}
 		<p class="notice">
 			To turn this on, add your Claude API key to the <code>.env</code> file (<code
@@ -165,6 +161,9 @@
 {/if}
 
 <style>
+	.intro {
+		max-width: 60ch;
+	}
 	.note {
 		font-size: 1.0625rem;
 		max-width: 62ch;

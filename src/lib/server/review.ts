@@ -1,10 +1,9 @@
 // Data for the review page: the draft menu Claude wrote, or the status of
-// the next one (scheduled, being written, or failed).
+// the next one (being written, or failed).
 
 import { getDb } from './app-db.ts';
 import { claudeConfigured, latestRun } from './ai/claude.ts';
 import { nextMenuWeekOf } from './ai/menu.ts';
-import { scheduleSummary } from './ai/schedule.ts';
 import { localTime } from '../dates.ts';
 import { getSetting } from './settings.ts';
 import { formatWeekOf, getDraftWeek, SLOTS } from './weeks.ts';
@@ -35,7 +34,6 @@ export function getReview() {
 
 	const base = {
 		claudeReady: claudeConfigured(),
-		schedule: scheduleSummary(),
 		nextWeekLabel: formatWeekOf(nextWeekOf),
 		working: run?.status === 'running',
 		lastError: run?.status === 'failed' ? run.error : null

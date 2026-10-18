@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, isMenuTime, localTime, sundayOnOrAfter } from './dates.ts';
+import { addDays, localTime, sundayOnOrAfter } from './dates.ts';
 
 describe('week dates', () => {
 	it('finds the coming Sunday', () => {
@@ -10,7 +10,7 @@ describe('week dates', () => {
 	});
 });
 
-describe('Saturday 9am Eastern', () => {
+describe('New York time', () => {
 	const ny = (iso: string) => localTime('America/New_York', new Date(iso));
 
 	it('reads New York time, including daylight saving', () => {
@@ -26,12 +26,5 @@ describe('Saturday 9am Eastern', () => {
 			date: '2026-12-05',
 			time: '09:00'
 		});
-	});
-
-	it('is menu time from 9:00 on Saturday, not before, not other days', () => {
-		expect(isMenuTime(ny('2026-10-24T12:59:00Z'), 'saturday', '09:00')).toBe(false); // 8:59
-		expect(isMenuTime(ny('2026-10-24T13:00:00Z'), 'saturday', '09:00')).toBe(true); // 9:00
-		expect(isMenuTime(ny('2026-10-24T20:00:00Z'), 'saturday', '09:00')).toBe(true); // afternoon catch-up
-		expect(isMenuTime(ny('2026-10-25T13:00:00Z'), 'saturday', '09:00')).toBe(false); // Sunday
 	});
 });

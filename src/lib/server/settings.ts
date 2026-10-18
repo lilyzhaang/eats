@@ -1,4 +1,4 @@
-// Read a value from the settings table (kitchen equipment, menu schedule…).
+// Read a value from the settings table (kitchen equipment, time zone…).
 
 import { getDb } from './app-db.ts';
 

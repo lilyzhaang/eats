@@ -34,7 +34,7 @@ export function loadPrompt(name: string): string {
 }
 
 export type RunKind = 'menu' | 'swap' | 'prep_plan';
-export type Trigger = 'schedule' | 'owner' | 'lock_in';
+export type Trigger = 'owner' | 'lock_in';
 
 // A request that's been "running" this long was cut off (e.g. the app restarted).
 const STALE_MINUTES = 15;
