@@ -1,26 +1,27 @@
-// The sign-in screen: passcode + "Who are you?".
+// The sign-in screen for Lily and Andrei: "Who are you?" + the owner passcode.
+// Everyone else can use the app read-only without signing in.
 
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getDb } from '#lib/server/app-db.ts';
 import {
-	checkPasscode,
+	checkOwnerPasscode,
 	clearFailedAttempts,
 	createSession,
 	deleteSession,
 	isRateLimited,
-	passcodesConfigured,
+	passcodeConfigured,
 	recordFailedAttempt,
 	SESSION_COOKIE,
 	SESSION_DAYS
 } from '#lib/server/auth.ts';
 
-type PersonaRow = { id: number; name: string; role: 'owner' | 'viewer' };
+type Owner = { id: number; name: string };
 
-function listPersonas(): PersonaRow[] {
+function listOwners(): Owner[] {
 	return getDb()
-		.prepare('SELECT id, name, role FROM personas ORDER BY sort_order, id')
-		.all() as PersonaRow[];
+		.prepare("SELECT id, name FROM personas WHERE role = 'owner' ORDER BY sort_order, id")
+		.all() as Owner[];
 }
 
 /**
@@ -34,10 +35,10 @@ function safeNext(value: string | null): string {
 
 export const load: PageServerLoad = ({ url, locals }) => {
 	return {
-		personas: listPersonas(),
+		owners: listOwners(),
 		next: safeNext(url.searchParams.get('next')),
-		signedInAs: locals.user?.name ?? null,
-		configured: passcodesConfigured()
+		signedInAs: locals.user.signedIn ? locals.user.name : null,
+		configured: passcodeConfigured()
 	};
 };
 
@@ -53,30 +54,21 @@ export const actions: Actions = {
 			return fail(429, { personaId, message: 'Too many tries. Wait 15 minutes and try again.' });
 		}
 
-		const persona = listPersonas().find((p) => p.id === personaId);
-		if (!persona) {
+		const owner = listOwners().find((p) => p.id === personaId);
+		if (!owner) {
 			return fail(400, { personaId, message: 'Choose who you are.' });
 		}
 
-		const kind = checkPasscode(passcode);
-		if (!kind) {
+		if (!checkOwnerPasscode(passcode)) {
 			recordFailedAttempt(address);
 			return fail(400, { personaId, message: 'That passcode didn’t work.' });
 		}
 
-		// The viewer passcode only ever opens viewer personas.
-		if (kind === 'viewer' && persona.role !== 'viewer') {
-			return fail(400, {
-				personaId,
-				message: 'That passcode is for viewing only. Choose Viewer, or use the owner passcode.'
-			});
-		}
-
 		clearFailedAttempts(address);
-		// Signing in again (e.g. switching from Viewer to Lily) replaces the old session.
+		// Signing in again (e.g. switching from Andrei to Lily) replaces the old session.
 		const oldToken = cookies.get(SESSION_COOKIE);
 		if (oldToken) deleteSession(oldToken);
-		const token = createSession(persona.id, kind);
+		const token = createSession(owner.id);
 		cookies.set(SESSION_COOKIE, token, {
 			path: '/',
 			httpOnly: true, // page scripts can't read it

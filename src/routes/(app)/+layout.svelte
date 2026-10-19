@@ -44,33 +44,33 @@
 		</nav>
 
 		<div class="who">
-			{#if data.user.role === 'viewer'}
+			{#if !data.user.signedIn}
+				<!-- Visitors can look around; Lily and Andrei sign in to make changes. -->
 				<span class="viewing-only">Viewing only</span>
-			{/if}
-			<button
-				type="button"
-				class="avatar"
-				aria-haspopup="true"
-				aria-expanded={menuOpen}
-				onclick={() => (menuOpen = !menuOpen)}
-			>
-				<span aria-hidden="true">{data.user.initials}</span>
-				<span class="visually-hidden">Signed in as {data.user.name}. Open menu</span>
-			</button>
-			{#if menuOpen}
-				<div class="menu card">
-					<p class="muted">Signed in as <strong>{data.user.name}</strong></p>
-					{#if data.user.role === 'owner'}
+				<a class="button sign-in" href="/signin?next={encodeURIComponent(page.url.pathname)}"
+					>Sign in</a
+				>
+			{:else}
+				<button
+					type="button"
+					class="avatar"
+					aria-haspopup="true"
+					aria-expanded={menuOpen}
+					onclick={() => (menuOpen = !menuOpen)}
+				>
+					<span aria-hidden="true">{data.user.initials}</span>
+					<span class="visually-hidden">Signed in as {data.user.name}. Open menu</span>
+				</button>
+				{#if menuOpen}
+					<div class="menu card">
+						<p class="muted">Signed in as <strong>{data.user.name}</strong></p>
 						<a class="button" href="/review" onclick={() => (menuOpen = false)}>Next week’s menu</a>
-					{/if}
-					<!-- Owner-passcode sessions can switch freely; viewer sessions sign in again. -->
-					<a class="button" href={data.user.passcodeKind === 'owner' ? '/switch' : '/signin'}>
-						Switch person
-					</a>
-					<form method="POST" action="/signout">
-						<button type="submit" class="button">Sign out</button>
-					</form>
-				</div>
+						<a class="button" href="/switch" onclick={() => (menuOpen = false)}>Switch person</a>
+						<form method="POST" action="/signout">
+							<button type="submit" class="button">Sign out</button>
+						</form>
+					</div>
+				{/if}
 			{/if}
 		</div>
 	</header>
@@ -133,6 +133,10 @@
 		font-weight: 600;
 		padding: 4px 10px;
 		border-radius: 999px;
+	}
+	.sign-in {
+		min-height: 40px;
+		padding: 0 16px;
 	}
 	.avatar {
 		width: 44px;

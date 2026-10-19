@@ -11,6 +11,7 @@
 <main class="signin">
 	<p class="eyebrow">Eats · Meal prep for two</p>
 	<h1>Who’s cooking?</h1>
+	<p class="muted">Sign in to pick, rate and check things off.</p>
 
 	{#if data.signedInAs}
 		<p class="muted">You’re signed in as {data.signedInAs}. Sign in again to switch.</p>
@@ -18,8 +19,8 @@
 
 	{#if !data.configured}
 		<p class="notice" role="alert">
-			Passcodes aren’t set up yet. Copy <code>.env.example</code> to <code>.env</code> and fill in
-			<code>OWNER_PASSCODE</code> and <code>VIEWER_PASSCODE</code>, then restart the app.
+			The passcode isn’t set up yet. Copy <code>.env.example</code> to <code>.env</code> and fill in
+			<code>OWNER_PASSCODE</code>, then restart the app.
 		</p>
 	{/if}
 
@@ -28,10 +29,8 @@
 
 		<label for="persona">Who are you?</label>
 		<select id="persona" name="persona" required>
-			{#each data.personas as persona (persona.id)}
-				<option value={persona.id} selected={form?.personaId === persona.id}>
-					{persona.name}{persona.role === 'viewer' ? ' (viewing only)' : ''}
-				</option>
+			{#each data.owners as owner (owner.id)}
+				<option value={owner.id} selected={form?.personaId === owner.id}>{owner.name}</option>
 			{/each}
 		</select>
 
@@ -45,6 +44,8 @@
 		<button type="submit" class="button primary">Sign in</button>
 		<p class="muted small">This device will stay signed in.</p>
 	</form>
+
+	<p class="browse"><a href={data.next}>Just looking? Browse without signing in</a></p>
 </main>
 
 <style>
@@ -77,6 +78,10 @@
 		color: var(--tag-bank-ink);
 		padding: 12px 14px;
 		border-radius: var(--radius);
+	}
+	.browse {
+		text-align: center;
+		margin-top: 20px;
 	}
 	.small {
 		font-size: 0.875rem;

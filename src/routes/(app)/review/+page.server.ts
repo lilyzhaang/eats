@@ -14,7 +14,7 @@ import { claudeConfigured } from '#lib/server/ai/claude.ts';
 import { getReview, todayAtHome } from '#lib/server/review.ts';
 
 export const load: PageServerLoad = ({ locals }) => {
-	if (locals.user?.role !== 'owner') redirect(303, '/pick');
+	if (locals.user.role !== 'owner') redirect(303, '/pick');
 	return { review: getReview() };
 };
 
@@ -38,14 +38,14 @@ async function inBackground(work: Promise<unknown>): Promise<string | null> {
 
 export const actions: Actions = {
 	generate: async ({ locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		if (!claudeConfigured()) return fail(400, { message: 'Add your Claude API key first.' });
 		const error = await inBackground(generateMenu(nextMenuWeekOf(todayAtHome()), 'owner'));
 		if (error) return fail(400, { message: error });
 	},
 
 	swap: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		if (!claudeConfigured()) return fail(400, { message: 'Add your Claude API key first.' });
 		const offerId = Number((await request.formData()).get('offer'));
 		const error = await inBackground(swapOption(offerId, 'owner'));
@@ -53,14 +53,14 @@ export const actions: Actions = {
 	},
 
 	approve: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		const weekId = Number((await request.formData()).get('week'));
 		if (!approveDraft(weekId)) return fail(400, { message: 'That menu isn’t waiting for review.' });
 		redirect(303, '/pick');
 	},
 
 	discard: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		const weekId = Number((await request.formData()).get('week'));
 		if (!discardDraft(weekId)) return fail(400, { message: 'That menu isn’t waiting for review.' });
 	}

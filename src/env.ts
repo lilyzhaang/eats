@@ -11,11 +11,8 @@ const optionalText = (value: string | undefined) => (value?.trim() ? value : und
 
 export const variables = defineEnvVars({
 	OWNER_PASSCODE: {
-		description: 'Passcode Lily and Andrei share. Unlocks Lily, Andrei and Viewer.',
-		schema: optionalText
-	},
-	VIEWER_PASSCODE: {
-		description: 'Passcode for read-only guests. Only unlocks Viewer.',
+		description:
+			'Passcode Lily and Andrei share. Signs in as Lily or Andrei. Without signing in, the app is read-only.',
 		schema: optionalText
 	},
 	ANTHROPIC_API_KEY: {

@@ -40,7 +40,7 @@ You need [Node.js](https://nodejs.org) 24 or newer. Check with `node -v`.
    npm run dev
    ```
 
-   Open <http://localhost:5173>, choose who you are, and enter a passcode from your `.env` file. The page updates by itself as code changes. Press `Ctrl+C` in the terminal to stop the app.
+   Open <http://localhost:5173>. To make changes, tap **Sign in**, choose who you are, and enter the passcode from your `.env` file. The page updates by itself as code changes. Press `Ctrl+C` in the terminal to stop the app.
 
 ## Claude writes the menu
 
@@ -78,8 +78,8 @@ src/
     ai/               Talking to Claude: the weekly menu, swaps, prep plans.
   lib/components/     Reusable pieces of screen (icons, cards…).
   routes/             One folder per page. The folder name is the web address.
-    signin/           Passcode + "Who are you?"
-    switch/           Switch person
+    signin/           Owner sign-in: "Who are you?" + passcode
+    switch/           Switch between Lily and Andrei
     (app)/            The four main screens and the tab bar around them
       pick/ shop/ cook/ rate/
       review/         Next week's menu from Claude, before it opens for picking (owners only)
@@ -91,18 +91,17 @@ In each route folder, `+page.svelte` is what you see and `+page.server.ts` loads
 ## Dev and live (prod)
 
 - **Dev** is your Mac: `npm run dev`, with the sample data in `data/eats.db`. Break things freely.
-- **Live** is the hosted copy you both use on your phones. It has its own database and its own, different passcodes.
+- **Live** is the hosted copy you both use on your phones. It has its own database and its own, different passcode.
 
 The two never share a database, so testing never touches real picks. Change things on your Mac first, then deploy.
 
 ## Sign-in
 
-There are no accounts. Two passcodes are set as environment variables:
+There are no accounts.
 
-- `OWNER_PASSCODE` — Lily and Andrei share it. Opens Lily, Andrei or Viewer.
-- `VIEWER_PASSCODE` — for showing the app to someone. Only opens Viewer, which can look but not change anything. That rule is enforced on the server, not just by hiding buttons.
-
-Devices stay signed in for a year. Changing a passcode signs out every device that used it. After 10 wrong tries, a device has to wait 15 minutes.
+- **Anyone with the link can look, without a passcode.** They see the menu, picks, grocery list, prep plan and ratings, read-only. Every change is refused by the server, not just hidden. They never see draft menus, Claude's logs or settings.
+- **Lily and Andrei tap Sign in** and enter `OWNER_PASSCODE` (an environment variable, never in the code) to pick, tick, rate and generate menus. Devices stay signed in for a year; changing the passcode signs everyone out. After 10 wrong tries, a device has to wait 15 minutes.
+- Search engines are asked not to list the site.
 
 ## Hosting (later)
 

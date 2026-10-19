@@ -6,8 +6,8 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			/** Who is signed in on this request, or null if nobody. Set in hooks.server.ts. */
-			user: SessionUser | null;
+			/** Who this is: a signed-in owner, or a read-only viewer. Set in hooks.server.ts. */
+			user: SessionUser;
 		}
 		// interface PageData {}
 		// interface PageState {}

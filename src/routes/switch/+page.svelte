@@ -11,16 +11,16 @@
 <main class="switch">
 	<h1>Switch person</h1>
 	<form method="POST" class="choices">
-		{#each data.personas as persona (persona.id)}
+		{#each data.owners as owner (owner.id)}
 			<button
 				type="submit"
 				name="persona"
-				value={persona.id}
+				value={owner.id}
 				class="button"
-				class:primary={persona.id === data.currentId}
-				aria-current={persona.id === data.currentId ? 'true' : undefined}
+				class:primary={owner.id === data.currentId}
+				aria-current={owner.id === data.currentId ? 'true' : undefined}
 			>
-				{persona.name}{persona.role === 'viewer' ? ' (viewing only)' : ''}
+				{owner.name}
 			</button>
 		{/each}
 	</form>

@@ -8,10 +8,10 @@ export const load: LayoutServerLoad = ({ locals }) => {
 	const week = getCurrentWeek();
 	const draft = getDraftWeek();
 	return {
-		// hooks.server.ts has already sent signed-out visitors to /signin.
-		user: locals.user!,
+		// Everyone has a user: a signed-in owner or a read-only viewer.
+		user: locals.user,
 		week: week ? { ...week, label: formatWeekOf(week.week_of) } : null,
 		// Owners see a banner when Claude's next menu is waiting for review.
-		draftLabel: draft && locals.user!.role === 'owner' ? formatWeekOf(draft.week_of) : null
+		draftLabel: draft && locals.user.role === 'owner' ? formatWeekOf(draft.week_of) : null
 	};
 };

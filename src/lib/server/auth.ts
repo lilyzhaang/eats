@@ -1,72 +1,77 @@
-// Sign-in: passcode + "Who are you?" (see §10 of CLAUDE.md).
+// Sign-in (see §10 of CLAUDE.md).
 //
-// There are two passcodes, both set as environment variables:
-//   OWNER_PASSCODE  — shared by Lily and Andrei; can sign in as anyone.
-//   VIEWER_PASSCODE — can only sign in as a viewer (read-only).
+// Anyone who opens the app without signing in is a viewer: they can look at
+// everything but change nothing (enforced in hooks.server.ts). Lily and
+// Andrei sign in with the shared owner passcode, set as an environment
+// variable (OWNER_PASSCODE), to make changes.
 //
-// When someone signs in we create a session: a long random token stored in a
+// When an owner signs in we create a session: a long random token stored in a
 // cookie on their device. The database only keeps a hash of the token.
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { OWNER_PASSCODE, VIEWER_PASSCODE } from '$app/env/private';
+import { OWNER_PASSCODE } from '$app/env/private';
 import { getDb } from './app-db.ts';
 
 export const SESSION_COOKIE = 'eats_session';
 export const SESSION_DAYS = 365;
 
-export type PasscodeKind = 'owner' | 'viewer';
-
 export type SessionUser = {
 	personaId: number;
 	name: string;
 	initials: string;
-	/** What this person can do right now. A viewer passcode always means 'viewer'. */
+	/** Owners can change things; viewers can only look. */
 	role: 'owner' | 'viewer';
-	/** Which passcode they signed in with. */
-	passcodeKind: PasscodeKind;
+	/** False for visitors who haven't signed in (they're viewers). */
+	signedIn: boolean;
 };
 
 function sha256(text: string): Buffer {
 	return createHash('sha256').update(text).digest();
 }
 
-function passcodeFor(kind: PasscodeKind): string | undefined {
-	return kind === 'owner' ? OWNER_PASSCODE : VIEWER_PASSCODE;
-}
-
 /**
- * Which passcode (if any) does this match?
+ * Does this match the owner passcode?
  * We compare hashes with timingSafeEqual so the comparison takes the same time
- * whether the guess is close or not — that stops a guesser from learning anything.
+ * whether the guess is close or not; that stops a guesser from learning anything.
  */
-export function checkPasscode(guess: string): PasscodeKind | null {
-	const guessHash = sha256(guess);
-	for (const kind of ['owner', 'viewer'] as const) {
-		const real = passcodeFor(kind);
-		if (real && timingSafeEqual(guessHash, sha256(real))) return kind;
-	}
-	return null;
+export function checkOwnerPasscode(guess: string): boolean {
+	return Boolean(OWNER_PASSCODE) && timingSafeEqual(sha256(guess), sha256(OWNER_PASSCODE!));
 }
 
 /**
  * A short fingerprint of the current passcode. Stored with each session;
  * if the passcode changes, old sessions no longer match and are signed out.
  */
-function fingerprint(kind: PasscodeKind): string | null {
-	const real = passcodeFor(kind);
-	return real ? sha256(`${kind}:${real}`).toString('hex').slice(0, 16) : null;
+function fingerprint(): string | null {
+	return OWNER_PASSCODE ? sha256(`owner:${OWNER_PASSCODE}`).toString('hex').slice(0, 16) : null;
 }
 
-/** Start a session and return the token to put in the cookie. */
-export function createSession(personaId: number, kind: PasscodeKind): string {
+/** The read-only visitor everyone is until they sign in. */
+export function guestViewer(): SessionUser {
+	const viewer = getDb()
+		.prepare(
+			"SELECT id, name, initials FROM personas WHERE role = 'viewer' ORDER BY sort_order LIMIT 1"
+		)
+		.get() as { id: number; name: string; initials: string };
+	return {
+		personaId: viewer.id,
+		name: viewer.name,
+		initials: viewer.initials,
+		role: 'viewer',
+		signedIn: false
+	};
+}
+
+/** Start an owner session and return the token to put in the cookie. */
+export function createSession(personaId: number): string {
 	const token = randomBytes(32).toString('base64url');
 	const expires = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
 	getDb()
 		.prepare(
 			`INSERT INTO sessions (token_hash, persona_id, passcode_kind, passcode_fingerprint, expires_at)
-			 VALUES (?, ?, ?, ?, ?)`
+			 VALUES (?, ?, 'owner', ?, ?)`
 		)
-		.run(sha256(token).toString('hex'), personaId, kind, fingerprint(kind)!, expires.toISOString());
+		.run(sha256(token).toString('hex'), personaId, fingerprint()!, expires.toISOString());
 	return token;
 }
 
@@ -82,10 +87,10 @@ export function getSessionUser(token: string): SessionUser | null {
 		.get(sha256(token).toString('hex'));
 	if (!row) return null;
 
-	const kind = row.passcode_kind as PasscodeKind;
 	const expired = new Date(row.expires_at as string) < new Date();
-	const passcodeChanged = row.passcode_fingerprint !== fingerprint(kind);
-	if (expired || passcodeChanged) {
+	// Old viewer-passcode sessions, or the owner passcode has changed since.
+	const stale = row.passcode_kind !== 'owner' || row.passcode_fingerprint !== fingerprint();
+	if (expired || stale || row.role !== 'owner') {
 		deleteSession(token);
 		return null;
 	}
@@ -94,10 +99,8 @@ export function getSessionUser(token: string): SessionUser | null {
 		personaId: row.persona_id as number,
 		name: row.name as string,
 		initials: row.initials as string,
-		// Belt and braces: a viewer passcode can never act as an owner,
-		// even if the session somehow points at an owner persona.
-		role: kind === 'viewer' ? 'viewer' : (row.role as 'owner' | 'viewer'),
-		passcodeKind: kind
+		role: 'owner',
+		signedIn: true
 	};
 }
 
@@ -140,7 +143,7 @@ export function clearFailedAttempts(address: string): void {
 	failures.delete(address);
 }
 
-/** True when both passcodes are set. The sign-in page warns if not. */
-export function passcodesConfigured(): boolean {
-	return Boolean(passcodeFor('owner') && passcodeFor('viewer'));
+/** True when the owner passcode is set. The sign-in page warns if not. */
+export function passcodeConfigured(): boolean {
+	return Boolean(OWNER_PASSCODE);
 }

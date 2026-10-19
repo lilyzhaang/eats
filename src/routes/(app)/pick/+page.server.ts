@@ -15,7 +15,7 @@ export const actions: Actions = {
 	// Tapping a card submits its offer id here.
 	pick: async ({ request, locals }) => {
 		// hooks.server.ts already blocks viewers; this double-checks.
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 
 		const week = getCurrentWeek();
 		const offerId = Number((await request.formData()).get('offer'));

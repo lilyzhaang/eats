@@ -134,11 +134,13 @@
 	</p>
 {:else if data.reason === 'failed'}
 	<h1>The plan didn’t come through.</h1>
-	<p class="error" role="alert">{data.error}</p>
 	{#if canCheck}
+		<p class="error" role="alert">{data.error}</p>
 		<form method="POST" action="?/retry" use:enhance>
 			<button type="submit" class="button primary">Try again</button>
 		</form>
+	{:else}
+		<p class="muted">Lily or Andrei can try again.</p>
 	{/if}
 {:else if data.reason === 'picking'}
 	<h1>Pick first, then cook.</h1>
@@ -147,8 +149,10 @@
 {:else}
 	<h1>No plan yet.</h1>
 	<p class="muted">
-		Claude writes the prep-day plan once you lock in your picks. To turn that on, add your Claude
-		API key to the <code>.env</code> file (<code>ANTHROPIC_API_KEY=</code>) and restart the app.
+		Claude writes the prep-day plan once you lock in your picks.
+		{#if canCheck}To turn that on, add your Claude API key to the <code>.env</code> file (<code
+				>ANTHROPIC_API_KEY=</code
+			>) and restart the app.{/if}
 	</p>
 {/if}
 

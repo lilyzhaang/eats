@@ -15,7 +15,7 @@ export const load: PageServerLoad = () => {
 export const actions: Actions = {
 	// Each row's button sends "ingredientId:1" to tick or "ingredientId:0" to untick.
 	check: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 
 		const [id, checked] = String((await request.formData()).get('toggle')).split(':');
 		const week = getCurrentWeek();

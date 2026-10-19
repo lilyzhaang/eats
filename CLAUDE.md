@@ -321,7 +321,7 @@ Goals: easy for Lily to run and understand, cheap or free to host now, **easy to
 - **Backend + DB:** a small server with **SQLite** (single file, zero setup, portable) or **Postgres** if Andrei's server will run one. Versioned migrations in the repo.
 - **Packaging:** `Dockerfile` + `docker-compose.yml`, so moving to Andrei's server is "copy and run".
 - **Hosting now:** any service that runs a container (Fly.io, Railway, Render). **GitHub Pages alone isn't enough**, since it only serves static files and this app stores shared data.
-- **Sign-in (decided):** link + passcode + persona picker, with **two passcodes**.
+- **Sign-in (decided; updated Oct 19, 2026, see §14):** viewing needs no passcode; owners sign in with the owner passcode + persona picker. The original two-passcode design below is kept for history.
   1. The nudge email contains the app link (deep-linked to the right screen).
   2. Opening it shows a simple sign-in screen: a **passcode** field and a **"Who are you?" dropdown**.
   3. **Owner passcode** (shared by Lily and Andrei): unlocks the Lily and Andrei personas (the dropdown can also offer Viewer, for previewing what a viewer sees).
@@ -457,4 +457,5 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | One person's "Never" is enough to stop suggesting a recipe | Resolves the open question in §7.3 |
 | Rate shows the most recent finished week (a week finishes when the next menu is approved) | So the debrief happens after cooking, not right at lock-in |
 | Every Claude request is logged with token use; an answer that can't be saved is reused on retry | Cost visibility; never pay twice for one answer |
+| No viewer passcode: anyone with the link can view read-only without signing in; only owners sign in (owner passcode) | Lily's call (Oct 19, 2026): fine to show the app freely as long as visitors can't change anything or see internal data. Supersedes the two-passcode design in §10; changes still server-enforced; drafts, Claude logs and settings stay owner-only; noindex for search engines |
 

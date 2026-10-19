@@ -22,7 +22,7 @@ function optionalNumber(value: FormDataEntryValue | null): number | null {
 export const actions: Actions = {
 	// Save the signed-in person's stars, verdict and tweak for one meal.
 	rate: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		const form = await request.formData();
 		const offerId = Number(form.get('offer'));
 		const week = getRateWeek();
@@ -40,7 +40,7 @@ export const actions: Actions = {
 
 	// Save the two closing questions.
 	closing: async ({ request, locals }) => {
-		if (locals.user?.role !== 'owner') return fail(403, { message: 'Viewing only.' });
+		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		const form = await request.formData();
 		const week = getRateWeek();
 		const error = week

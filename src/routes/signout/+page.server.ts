@@ -13,6 +13,7 @@ export const actions: Actions = {
 		const token = cookies.get(SESSION_COOKIE);
 		if (token) deleteSession(token);
 		cookies.delete(SESSION_COOKIE, { path: '/' });
-		redirect(303, '/signin');
+		// Back to the app, now read-only.
+		redirect(303, '/pick');
 	}
 };
