@@ -1,11 +1,17 @@
 <!--
-  The app shell around Pick, Shop, Cook and Rate.
+  The app shell around Pick, Shop, Cook, Rate and Bank.
   Phones: tab bar along the bottom. Wider screens: the same links across the top.
+  Switching tabs springs the tab pill over and slides the page in from the
+  side you're heading toward (see motion.svelte.ts for the settings).
 -->
 <script lang="ts">
+	import { dev } from '$app/env';
 	import { page } from '$app/state';
-	import { invalidateAll } from '$app/navigation';
-	import Icon from '#lib/components/Icon.svelte';
+	import { beforeNavigate, invalidateAll } from '$app/navigation';
+	import MotionTuner from '#lib/components/MotionTuner.svelte';
+	import TabBar from '#lib/components/TabBar.svelte';
+	import { loadTuning } from '#lib/motion.svelte.ts';
+	import { pageIn, pageOut } from '#lib/page-transition.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -20,6 +26,27 @@
 
 	let menuOpen = $state(false);
 
+	/** Which tab a path belongs to (-1 for pages outside the tabs, like Review). */
+	const tabIndex = (path: string | undefined) =>
+		path ? tabs.findIndex((t) => path === t.href || path.startsWith(t.href + '/')) : -1;
+	const active = $derived(tabIndex(page.url.pathname));
+
+	// Which way pages slide: toward the tab you're going to, and "forward"
+	// when going deeper within a tab (Bank → a recipe).
+	let direction = $state(1);
+	beforeNavigate(({ from, to }) => {
+		const a = tabIndex(from?.url.pathname);
+		const b = tabIndex(to?.url.pathname);
+		if (a !== b) direction = b > a ? 1 : -1;
+		else direction = (to?.url.pathname.length ?? 0) >= (from?.url.pathname.length ?? 0) ? 1 : -1;
+		menuOpen = false;
+	});
+
+	// On the dev copy, pick up any values saved from the Motion tuner.
+	$effect(() => {
+		if (dev) loadTuning();
+	});
+
 	// When you come back to the app (switch tabs, unlock your phone), reload the
 	// data so you see what the other person picked or checked off meanwhile.
 	function refreshIfVisible() {
@@ -33,16 +60,9 @@
 	<header class="topbar">
 		<a href="/pick" class="brand">Eats</a>
 
-		<nav class="desktop-tabs" aria-label="Main">
-			{#each tabs as tab (tab.href)}
-				<a
-					href={tab.href}
-					aria-current={page.url.pathname.startsWith(tab.href) ? 'page' : undefined}
-				>
-					{tab.label}
-				</a>
-			{/each}
-		</nav>
+		<div class="desktop-tabs">
+			<TabBar {tabs} {active} variant="top" />
+		</div>
 
 		<div class="who">
 			{#if !data.user.signedIn}
@@ -83,17 +103,23 @@
 				<span>Claude’s picks for the week of {data.draftLabel} are waiting for your review →</span>
 			</a>
 		{/if}
-		{@render children()}
+		<!-- Old and new pages overlap here for a moment while one slides out and the other in. -->
+		<div class="stage">
+			{#key page.url.pathname}
+				<div class="page" in:pageIn={{ dir: direction }} out:pageOut={{ dir: direction }}>
+					{@render children()}
+				</div>
+			{/key}
+		</div>
 	</main>
 
-	<nav class="bottom-tabs" aria-label="Main">
-		{#each tabs as tab (tab.href)}
-			<a href={tab.href} aria-current={page.url.pathname.startsWith(tab.href) ? 'page' : undefined}>
-				<Icon name={tab.icon} />
-				<span>{tab.label}</span>
-			</a>
-		{/each}
-	</nav>
+	<div class="bottom-tabs">
+		<TabBar {tabs} {active} variant="bottom" />
+	</div>
+
+	{#if dev}
+		<MotionTuner {tabs} />
+	{/if}
 </div>
 
 <style>
@@ -189,32 +215,26 @@
 		padding: 24px 16px calc(96px + env(safe-area-inset-bottom));
 	}
 
+	.stage {
+		display: grid;
+	}
+	.page {
+		/* Both pages sit in the same spot while they cross over. */
+		grid-area: 1 / 1;
+		min-width: 0;
+		transform-origin: 50% 0;
+	}
+
 	/* Phone: tabs along the bottom */
 	.bottom-tabs {
 		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
-		display: grid;
-		grid-template-columns: repeat(5, 1fr);
+		z-index: 10;
 		background: var(--surface);
 		border-top: 1px solid var(--border);
 		padding-bottom: env(safe-area-inset-bottom);
-	}
-	.bottom-tabs a {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 2px;
-		padding: 8px 0 10px;
-		min-height: 56px;
-		color: var(--ink-secondary);
-		text-decoration: none;
-		font-size: 0.75rem;
-		font-weight: 600;
-	}
-	.bottom-tabs a[aria-current='page'] {
-		color: var(--accent);
 	}
 
 	.desktop-tabs {
@@ -227,23 +247,15 @@
 			display: none;
 		}
 		.desktop-tabs {
-			display: flex;
-			gap: 4px;
+			display: block;
 			margin-left: 16px;
-		}
-		.desktop-tabs a {
-			padding: 10px 16px;
-			border-radius: 999px;
-			color: var(--ink-secondary);
-			text-decoration: none;
-			font-weight: 600;
-		}
-		.desktop-tabs a[aria-current='page'] {
-			background: var(--ink);
-			color: var(--callout-ink);
 		}
 		.content {
 			padding-bottom: 48px;
 		}
+	}
+	/* Keep the sliding pages from making the window scroll sideways. */
+	.shell {
+		overflow-x: clip;
 	}
 </style>
