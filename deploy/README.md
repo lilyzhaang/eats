@@ -4,10 +4,12 @@ The live app runs in Docker on Andrei's server, omarchy. Tailscale Funnel publis
 
 Updates only happen when someone runs `npm run deploy`. Nothing on the server checks for updates by itself.
 
+Lily's deploy key can't log in to omarchy. It can only run `~/bin/eats-deploy`, which accepts three requests: deploy a commit that's on GitHub's `main`, show status, or show the log. What the container may do is set in `~/eats-server/docker-compose.yml`, which only Andrei changes. Both live outside the git checkout, so nothing pushed to GitHub can change them.
+
 ```
 Lily's Mac ──git push──▶ GitHub
      │
-     └──npm run deploy (SSH over Tailscale)──▶ omarchy: fetch that version, rebuild
+     └──npm run deploy (SSH over Tailscale)──▶ omarchy: ~/bin/eats-deploy builds that version
                                                   │
 phones / browsers ──https://omarchy.….ts.net──▶ Tailscale Funnel ──▶ 127.0.0.1:3000 (Docker)
 ```
@@ -38,6 +40,42 @@ The passcode and API key end up only in `~/apps/eats/.env` on the server, readab
 1. Install Tailscale for Mac (Mac App Store or tailscale.com), sign in, and accept Andrei's invite.
 2. Check you can reach the server: `ssh omarchy`. The SSH shortcut and key are already on your Mac.
 
+## Locking Lily's key to deploys (one-time, for a server set up before this)
+
+**Andrei**, on omarchy, with your usual access:
+
+1. Get the new files:
+   ```bash
+   cd ~/apps/eats && git fetch -q origin main && git checkout -q --detach origin/main
+   ```
+2. Install the deploy command and the container settings, outside the checkout:
+   ```bash
+   install -D -m 755 deploy/server/eats-deploy ~/bin/eats-deploy
+   install -D -m 644 deploy/server/docker-compose.yml ~/eats-server/docker-compose.yml
+   ```
+3. Switch the running app over to those settings. Same container, same lockdown, same data; it restarts for a few seconds:
+   ```bash
+   docker compose -f ~/eats-server/docker-compose.yml up -d --build
+   curl -fsS -o /dev/null http://127.0.0.1:3000/pick && echo ok
+   ```
+4. Restrict Lily's key. In `~/.ssh/authorized_keys`, change her line (it ends in `lily-mac-eats-deploy`) so it starts with `restrict,command="/home/ass/bin/eats-deploy"`, giving:
+   ```
+   restrict,command="/home/ass/bin/eats-deploy" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINSHef22PI0el9CxqGQsJdZwB3YCyT+9bYLbFE8+n8+U lily-mac-eats-deploy
+   ```
+   `restrict` turns off shells, port forwarding and everything else; `command=` means the only thing it can run is the deploy command. Your own keys are unaffected.
+
+**Then, from Lily's Mac:**
+- `ssh omarchy` should now be refused with "not allowed".
+- `npm run server:status` should show the app running and answering.
+
+**Optional, Lily:** put a passphrase on the key, so a stolen laptop alone can't deploy. You type the passphrase yourself; macOS remembers it in the Keychain:
+```bash
+ssh-keygen -p -f ~/.ssh/omarchy_ed25519
+```
+```bash
+ssh-add --apple-use-keychain ~/.ssh/omarchy_ed25519
+```
+
 ## Deploying an update
 
 From the `eats` folder on Lily's Mac:
@@ -46,21 +84,24 @@ From the `eats` folder on Lily's Mac:
 npm run deploy
 ```
 
-It refuses to deploy uncommitted or unpushed work, runs the tests and build, then has omarchy fetch that exact version and rebuild. It takes a minute or two, and the site is down for a few seconds while the container restarts.
+It refuses to deploy uncommitted or unpushed work, runs the tests and build, then asks omarchy to build and run that exact version. It takes a minute or two, and the site is down for a few seconds while the container restarts.
+
+From Lily's Mac, `npm run server:status` shows whether it's running, and `npm run server:logs` shows the last 100 log lines.
 
 ## Everyday server commands
 
-Run these on omarchy, in `~/apps/eats`:
+Run these on omarchy (Andrei). They all use the server's own settings file, so start each with `docker compose -f ~/eats-server/docker-compose.yml`, shortened below to `dc`. Add `alias dc='docker compose -f ~/eats-server/docker-compose.yml'` to your shell to type it that way:
 
 | What | Command |
 |---|---|
-| Is it running? | `docker compose ps` |
-| Recent logs | `docker compose logs --tail 100` |
-| Restart | `docker compose restart` |
-| Back up the database | `docker compose exec eats node scripts/db-backup.ts` (copy lands in `data/backups/`) |
-| Change the passcode or API key | `nano .env`, then `docker compose up -d` |
-| Roll back to an earlier version | `git checkout --detach <commit>` then `docker compose up -d --build` |
-| Stop it | `docker compose down` (data stays in `data/`) |
+| Is it running? | `dc ps` |
+| Recent logs | `dc logs --tail 100` |
+| Restart | `dc restart` |
+| Back up the database | `dc exec eats node scripts/db-backup.ts` (copy lands in `~/apps/eats/data/backups/`) |
+| Change the passcode or API key | `nano ~/apps/eats/.env`, then `dc up -d` |
+| Roll back to an earlier version | `git -C ~/apps/eats checkout --detach <commit>` then `dc up -d --build` |
+| Stop it | `dc down` (data stays in `~/apps/eats/data/`) |
+| Update the container settings | after pulling: `install -m 644 ~/apps/eats/deploy/server/docker-compose.yml ~/eats-server/docker-compose.yml && dc up -d` |
 | See what Funnel is publishing | `tailscale funnel status` |
 | Stop publishing it | `tailscale funnel --https=443 off` (or `8443`) |
 

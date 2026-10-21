@@ -1,4 +1,6 @@
-# Runs Eats on the server (omarchy). See deploy/README.md.
+# Runs Eats with Docker on your own machine, for trying the container locally.
+# omarchy does NOT use this file: it uses deploy/server/docker-compose.yml,
+# installed outside the git checkout (see deploy/README.md).
 #
 #   docker compose up -d --build     start or update
 #   docker compose logs -f           watch the logs

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# The ONLY thing Lily's deploy key can run on omarchy.
+#
+# Installed by Andrei at ~/bin/eats-deploy, outside the app's git checkout,
+# so pushing to GitHub can't change it. Lily's line in ~/.ssh/authorized_keys
+# starts with:
+#   restrict,command="/home/ass/bin/eats-deploy"
+# so whatever command the key asks for arrives here in SSH_ORIGINAL_COMMAND,
+# and the key can't get a shell, forward ports or do anything else.
+#
+# Accepted commands:
+#   deploy <40-character commit id>   build and run that commit, if it's on GitHub's main
+#   status                            is the app running and answering?
+#   logs                              the last 100 lines of the app's log
+
+set -euo pipefail
+
+APP_DIR="$HOME/apps/eats"                               # code from GitHub
+SERVER_COMPOSE="$HOME/eats-server/docker-compose.yml"   # container settings, owned by Andrei
+
+compose() { docker compose -f "$SERVER_COMPOSE" "$@"; }
+refuse() { echo "eats-deploy: ${1:-not allowed}. Allowed: deploy <commit>, status, logs." >&2; exit 2; }
+healthy() { curl -fsS -o /dev/null --max-time 5 http://127.0.0.1:3000/pick; }
+
+# Split the request into words without letting the shell interpret anything.
+read -r -a words <<< "${SSH_ORIGINAL_COMMAND:-}"
+action="${words[0]:-}"
+
+case "$action" in
+	deploy)
+		[ "${#words[@]}" -eq 2 ] || refuse "deploy takes exactly one commit id"
+		commit="${words[1]}"
+		[[ "$commit" =~ ^[0-9a-f]{40}$ ]] || refuse "not a full commit id"
+
+		git -C "$APP_DIR" fetch -q origin main
+		git -C "$APP_DIR" merge-base --is-ancestor "$commit" origin/main ||
+			refuse "that commit isn't on GitHub's main branch"
+		git -C "$APP_DIR" checkout -q --detach "$commit"
+
+		compose up -d --build
+		docker image prune -f --filter label=app=eats >/dev/null
+
+		for _ in $(seq 1 30); do
+			if healthy; then echo "Live: $(git -C "$APP_DIR" log -1 --format='%h %s')"; exit 0; fi
+			sleep 2
+		done
+		echo "The app didn't answer after deploying. Run: ssh omarchy logs" >&2
+		exit 1
+		;;
+	status)
+		[ "${#words[@]}" -eq 1 ] || refuse
+		compose ps --format '{{.Name}}: {{.Status}}'
+		echo "Version: $(git -C "$APP_DIR" log -1 --format='%h %s')"
+		if healthy; then echo "Answering: yes"; else echo "Answering: NO"; exit 1; fi
+		;;
+	logs)
+		[ "${#words[@]}" -eq 1 ] || refuse
+		compose logs --tail 100 --no-color
+		;;
+	*)
+		refuse
+		;;
+esac

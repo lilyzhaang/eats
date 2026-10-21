@@ -72,8 +72,14 @@ if [ "$(stat -c %u data)" != "10001" ]; then
 	sudo chown -R 10001:10001 data
 fi
 
-say "4. Building and starting the app (first build takes a few minutes)"
-docker compose up -d --build
+say "4. Installing the deploy command and the container settings"
+# Both live outside the git checkout, so pushing to GitHub can't change them.
+install -D -m 755 deploy/server/eats-deploy "$HOME/bin/eats-deploy"
+install -D -m 644 deploy/server/docker-compose.yml "$HOME/eats-server/docker-compose.yml"
+echo "Installed ~/bin/eats-deploy and ~/eats-server/docker-compose.yml"
+
+say "5. Building and starting the app (first build takes a few minutes)"
+docker compose -f "$HOME/eats-server/docker-compose.yml" up -d --build
 
 echo -n "Waiting for it to answer"
 for _ in $(seq 1 30); do
@@ -81,7 +87,7 @@ for _ in $(seq 1 30); do
 	echo -n "."; sleep 2
 done
 
-say "5. Publishing with Tailscale Funnel"
+say "6. Publishing with Tailscale Funnel"
 # --bg keeps it running after this script ends, and across reboots.
 if ! tailscale funnel --bg --https="$PUBLIC_PORT" "$PORT"; then
 	echo "Funnel didn't start. It may need: sudo tailscale set --operator=\$USER"
@@ -92,3 +98,5 @@ fi
 
 say "Done. Eats is live at: $ORIGIN"
 echo "Updates from now on: run 'npm run deploy' on Lily's Mac."
+echo "To lock Lily's key to deploys only, start her line in ~/.ssh/authorized_keys with:"
+echo "  restrict,command=\"$HOME/bin/eats-deploy\" "
