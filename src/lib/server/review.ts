@@ -12,11 +12,13 @@ export type ReviewOption = {
 	offerId: number;
 	letter: string;
 	fromBank: boolean;
+	savedToTry: boolean;
 	name: string;
 	cuisine: string;
 	totalMinutes: number | null;
 	servings: number | null;
 	sourceUrl: string | null;
+	sourceCredit: string | null;
 	ingredients: { name: string; quantity: number | null; unit: string; prepNote: string | null }[];
 	steps: string[];
 };
@@ -46,7 +48,7 @@ export function getReview() {
 	const offers = db
 		.prepare(
 			`SELECT o.id, o.slot, o.letter, o.from_bank, r.id AS recipe_id, r.name, r.cuisine,
-			        r.total_minutes, r.servings, r.source_url
+			        r.total_minutes, r.servings, r.source_url, r.source_credit, r.to_try
 			 FROM offers o JOIN recipes r ON r.id = o.recipe_id
 			 WHERE o.week_id = ? ORDER BY o.slot, o.letter`
 		)
@@ -69,11 +71,13 @@ export function getReview() {
 				offerId: o.id as number,
 				letter: o.letter as string,
 				fromBank: o.from_bank === 1,
+				savedToTry: o.from_bank !== 1 && o.to_try === 1,
 				name: o.name as string,
 				cuisine: o.cuisine as string,
 				totalMinutes: o.total_minutes as number | null,
 				servings: o.servings as number | null,
 				sourceUrl: o.source_url as string | null,
+				sourceCredit: o.source_credit as string | null,
 				ingredients: (ingredientsOf.all(o.recipe_id as number) as Record<string, unknown>[]).map(
 					(i) => ({
 						name: i.name as string,

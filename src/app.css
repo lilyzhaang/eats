@@ -161,6 +161,11 @@ a:focus-visible {
 	background: var(--tag-bank-bg);
 	color: var(--tag-bank-ink);
 }
+/* Saved to try, Your recipe */
+.tag.saved {
+	background: var(--tag-hands-bg);
+	color: var(--tag-hands-ink);
+}
 
 /* Dark panel used for "How to pick" style callouts */
 .callout {

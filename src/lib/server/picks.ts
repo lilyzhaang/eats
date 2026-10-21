@@ -19,12 +19,16 @@ export type OptionCard = {
 	offerId: number;
 	letter: string;
 	fromBank: boolean;
+	/** A recipe you saved to try and haven't cooked yet. */
+	savedToTry: boolean;
 	recipe: {
 		name: string;
 		cuisine: string;
 		totalMinutes: number | null;
 		servings: number | null;
 		sourceUrl: string | null;
+		/** Who created it, e.g. "Hot Thai Kitchen (Pailin Chongchitnant)". */
+		sourceCredit: string | null;
 	};
 	/** History from earlier weeks. Only shown on recipe-bank cards. */
 	history: {
@@ -66,7 +70,7 @@ export function getPickBoard(week: Week): { owners: Owner[]; slots: SlotBoard[] 
 	const offers = db
 		.prepare(
 			`SELECT o.id, o.slot, o.letter, o.from_bank, o.recipe_id,
-			        r.name, r.cuisine, r.total_minutes, r.servings, r.source_url,
+			        r.name, r.cuisine, r.total_minutes, r.servings, r.source_url, r.source_credit, r.to_try,
 			        -- how many earlier weeks offered this recipe, and how many picked it
 			        (SELECT count(*) FROM offers o2 JOIN weeks w2 ON w2.id = o2.week_id
 			          WHERE o2.recipe_id = r.id AND w2.week_of < :week_of) AS times_offered,
@@ -102,12 +106,14 @@ export function getPickBoard(week: Week): { owners: Owner[]; slots: SlotBoard[] 
 				offerId: o.id as number,
 				letter: o.letter as string,
 				fromBank: o.from_bank === 1,
+				savedToTry: o.from_bank !== 1 && o.to_try === 1 && (o.times_picked as number) === 0,
 				recipe: {
 					name: o.name as string,
 					cuisine: o.cuisine as string,
 					totalMinutes: o.total_minutes as number | null,
 					servings: o.servings as number | null,
-					sourceUrl: o.source_url as string | null
+					sourceUrl: o.source_url as string | null,
+					sourceCredit: o.source_credit as string | null
 				},
 				history: {
 					timesOffered: o.times_offered as number,

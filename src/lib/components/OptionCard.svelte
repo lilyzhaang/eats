@@ -29,9 +29,13 @@
 	aria-pressed={mine}
 >
 	<span class="letter">{option.letter}</span>
-	<span class="tag" class:ai={!option.fromBank} class:bank={option.fromBank}>
-		{option.fromBank ? 'Recipe bank' : 'New · AI pick'}
-	</span>
+	{#if option.fromBank}
+		<span class="tag bank">Recipe bank</span>
+	{:else if option.savedToTry}
+		<span class="tag saved">Saved to try</span>
+	{:else}
+		<span class="tag ai">New · AI pick</span>
+	{/if}
 	<span class="name">{recipe.name}</span>
 
 	<span class="meta">
@@ -61,7 +65,7 @@
 <!-- Recipe link sits outside the button, so tapping it opens the recipe instead of picking. -->
 {#if recipe.sourceUrl}
 	<a class="source" href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">
-		{recipe.name} recipe
+		{recipe.sourceCredit ? `Recipe by ${recipe.sourceCredit}` : 'Original recipe'}
 	</a>
 {/if}
 

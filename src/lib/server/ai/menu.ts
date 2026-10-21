@@ -94,6 +94,41 @@ function chooseBankPicks(weekOf: string, perSlot: number): Map<Slot, BankPick[]>
 	return picks;
 }
 
+// ── Saved recipes ───────────────────────────────────────────────────────
+
+/**
+ * Recipes you saved to try and haven't cooked yet: at most one per slot,
+ * matching lunch or dinner, the ones offered least recently first.
+ */
+function chooseToTry(weekOf: string, alreadyChosen: Set<number>): Map<Slot, BankPick[]> {
+	const candidates = getDb()
+		.prepare(
+			`SELECT r.id, r.name, r.cuisine, r.meal_type,
+			        (SELECT max(w.week_of) FROM offers o JOIN weeks w ON w.id = o.week_id
+			          WHERE o.recipe_id = r.id AND w.is_draft = 0) AS last_offered
+			 FROM recipes r
+			 WHERE r.to_try = 1 AND r.status = 'active'
+			   AND NOT EXISTS (SELECT 1 FROM offers o JOIN weeks w ON w.id = o.week_id
+			                   WHERE o.recipe_id = r.id AND o.is_final_pick = 1 AND w.week_of < :week_of)
+			 ORDER BY last_offered IS NOT NULL, last_offered, r.id`
+		)
+		.all({ week_of: weekOf }) as { id: number; name: string; cuisine: string; meal_type: string }[];
+
+	const picks = new Map<Slot, BankPick[]>(SLOTS.map((s) => [s.key, []]));
+	const used = new Set(alreadyChosen);
+	for (const slot of SLOTS) {
+		const mealType = slot.key.startsWith('lunch') ? 'lunch' : 'dinner';
+		const match = candidates.find(
+			(c) => !used.has(c.id) && (c.meal_type === mealType || c.meal_type === 'either')
+		);
+		if (match) {
+			picks.get(slot.key)!.push({ recipeId: match.id, name: match.name, cuisine: match.cuisine });
+			used.add(match.id);
+		}
+	}
+	return picks;
+}
+
 // ── What Claude is told ─────────────────────────────────────────────────
 
 function gatherDetails(weekOf: string) {
@@ -173,10 +208,19 @@ export async function generateMenu(weekOf: string, triggeredBy: Trigger): Promis
 	const aiPerSlot = Number(getSetting('ai_options_per_slot', '2'));
 	const bankPerSlot = Number(getSetting('bank_options_per_slot', '1'));
 	const bankPicks = chooseBankPicks(weekOf, bankPerSlot);
+	// Saved-to-try recipes take one of the new-recipe spots in a slot.
+	const toTryPicks = chooseToTry(
+		weekOf,
+		new Set([...bankPicks.values()].flat().map((b) => b.recipeId))
+	);
 
-	// If the bank doesn't have enough favourites yet, Claude fills those spots.
+	// Claude writes the rest. If the bank doesn't have enough favourites yet,
+	// Claude fills those spots too.
 	const newOptionsPerSlot = Object.fromEntries(
-		SLOTS.map((s) => [s.key, aiPerSlot + (bankPerSlot - bankPicks.get(s.key)!.length)])
+		SLOTS.map((s) => [
+			s.key,
+			aiPerSlot - toTryPicks.get(s.key)!.length + (bankPerSlot - bankPicks.get(s.key)!.length)
+		])
 	);
 
 	// Reuse an answer that arrived but couldn't be saved, rather than paying twice.
@@ -193,6 +237,9 @@ export async function generateMenu(weekOf: string, triggeredBy: Trigger): Promis
 				new_options_needed_per_slot: newOptionsPerSlot,
 				recipe_bank_picks_already_chosen: Object.fromEntries(
 					SLOTS.map((s) => [s.key, bankPicks.get(s.key)!.map((b) => `${b.name} (${b.cuisine})`)])
+				),
+				saved_recipes_already_chosen: Object.fromEntries(
+					SLOTS.map((s) => [s.key, toTryPicks.get(s.key)!.map((b) => `${b.name} (${b.cuisine})`)])
 				)
 			}
 		}));
@@ -208,7 +255,7 @@ export async function generateMenu(weekOf: string, triggeredBy: Trigger): Promis
 	}
 
 	try {
-		saveMenu(weekOf, answer, bankPicks);
+		saveMenu(weekOf, answer, bankPicks, toTryPicks);
 	} catch (error) {
 		throw new Error(markSaveFailed(result.runId, error));
 	}
@@ -217,7 +264,12 @@ export async function generateMenu(weekOf: string, triggeredBy: Trigger): Promis
 }
 
 /** Save Claude's menu as a draft week. */
-function saveMenu(weekOf: string, answer: MenuAnswer, bankPicks: Map<Slot, BankPick[]>) {
+function saveMenu(
+	weekOf: string,
+	answer: MenuAnswer,
+	bankPicks: Map<Slot, BankPick[]>,
+	toTryPicks: Map<Slot, BankPick[]>
+) {
 	transaction(getDb(), () => {
 		// Saved as a draft: not visible for picking until an owner approves it.
 		const weekId = Number(
@@ -228,11 +280,12 @@ function saveMenu(weekOf: string, answer: MenuAnswer, bankPicks: Map<Slot, BankP
 		saveNote(weekId, answer.note_to_owners);
 
 		for (const slot of SLOTS) {
-			// New picks get the first letters (A, B…), favourites the last, like the mockup.
+			// New picks get the first letters (A, B…), then saved-to-try, then favourites.
 			const recipeIds = [
 				...answer.options
 					.filter((o) => o.slot === slot.key)
 					.map((o) => ({ id: saveRecipe(o.recipe), bank: false })),
+				...toTryPicks.get(slot.key)!.map((b) => ({ id: b.recipeId, bank: false })),
 				...bankPicks.get(slot.key)!.map((b) => ({ id: b.recipeId, bank: true }))
 			];
 			recipeIds.forEach((r, i) =>

@@ -1,0 +1,107 @@
+{
+	"_about": "Recipes Lily and Andrei found and want to try. Loaded with `npm run recipes:load` (on the server: docker compose exec eats node scripts/load-saved-recipes.ts). Ingredients and steps are written in the app's own words; follow source_url for the creator's original. Units must be one of: each, lb, oz, cup, tbsp, tsp, clove, bunch, can, to taste.",
+	"recipes": [
+		{
+			"name": "Vegan Thai Red Curry with Tofu and Vegetables",
+			"source_url": "https://hot-thai-kitchen.com/vegan-red-curry/",
+			"source_credit": "Hot Thai Kitchen (Pailin Chongchitnant)",
+			"notes": "Amounts and steps here are the app's own version. Check Pailin's original before cooking and correct anything that differs.",
+			"cuisine": "Thai",
+			"meal_type": "dinner",
+			"servings": 4,
+			"total_minutes": 40,
+			"ingredients": [
+				{ "name": "Red curry paste", "quantity": 3, "unit": "tbsp", "aisle": "Asian Pantry", "pantry_staple": false, "prep_note": "vegan (no shrimp paste)" },
+				{ "name": "Coconut milk", "quantity": 2, "unit": "can", "aisle": "Canned & Jarred", "pantry_staple": false, "prep_note": "full-fat" },
+				{ "name": "Extra-firm tofu", "quantity": 14, "unit": "oz", "aisle": "Tofu & Refrigerated", "pantry_staple": false, "prep_note": "cubed" },
+				{ "name": "Eggplant", "quantity": 1, "unit": "each", "aisle": "Produce", "pantry_staple": false, "prep_note": "bite-size pieces" },
+				{ "name": "Red bell pepper", "quantity": 1, "unit": "each", "aisle": "Produce", "pantry_staple": false, "prep_note": "strips" },
+				{ "name": "Green beans", "quantity": 0.5, "unit": "lb", "aisle": "Produce", "pantry_staple": false, "prep_note": "trimmed, cut in half" },
+				{ "name": "Thai basil", "quantity": 1, "unit": "bunch", "aisle": "Produce", "pantry_staple": false, "where_to_buy": "H Mart" },
+				{ "name": "Lime", "quantity": 1, "unit": "each", "aisle": "Produce", "pantry_staple": false },
+				{ "name": "Soy sauce", "quantity": 2, "unit": "tbsp", "aisle": "Asian Pantry", "pantry_staple": true },
+				{ "name": "Sugar", "quantity": 1, "unit": "tbsp", "aisle": "Baking", "pantry_staple": true, "prep_note": "palm sugar if you have it" },
+				{ "name": "Neutral oil", "quantity": 1, "unit": "tbsp", "aisle": "Oils & Vinegars", "pantry_staple": true },
+				{ "name": "Long-grain white rice", "quantity": 2, "unit": "cup", "aisle": "Grains & Noodles", "pantry_staple": true, "prep_note": "jasmine, to serve" }
+			],
+			"steps": [
+				{ "instruction": "Rinse the rice and cook it with water; keep it covered off the heat once done.", "equipment": "stovetop", "active_minutes": 3, "passive_minutes": 20, "can_batch_with": "cook_rice" },
+				{ "instruction": "Cut the tofu into cubes, the eggplant into bite-size pieces and the pepper into strips; trim the beans.", "equipment": "none", "active_minutes": 10, "passive_minutes": 0, "can_batch_with": "chop_vegetables" },
+				{ "instruction": "In a wide pot, heat the oil with a few spoonfuls of the thick coconut cream from the top of the cans, then fry the curry paste, stirring, until fragrant and the oil separates.", "equipment": "stovetop", "active_minutes": 5, "passive_minutes": 0 },
+				{ "instruction": "Stir in the rest of the coconut milk, add the eggplant and tofu, and simmer until the eggplant is tender.", "equipment": "stovetop", "active_minutes": 2, "passive_minutes": 12, "depends_on_step": 3 },
+				{ "instruction": "Add the green beans and pepper and simmer a few minutes more, until just tender.", "equipment": "stovetop", "active_minutes": 1, "passive_minutes": 4, "depends_on_step": 4 },
+				{ "instruction": "Season with soy sauce, sugar and lime juice to taste, then stir in the Thai basil leaves off the heat. Pack with the rice.", "equipment": "none", "active_minutes": 3, "passive_minutes": 0, "depends_on_step": 5 }
+			]
+		},
+		{
+			"name": "Herby Mushroom Stroganoff",
+			"source_url": "https://www.mob.co.uk/recipes/herby-mushroom-stroganoff",
+			"source_credit": "Mob (Sophie Wyburd)",
+			"notes": "Vegan: the creaminess comes from blended cashews. Mob's page lists ingredients without amounts, so amounts here are the app's own estimates; check the original (Mob app) and correct anything that differs. The original uses Henderson's Relish; Worcestershire sauce stands in (look for a vegan one).",
+			"cuisine": "Other",
+			"meal_type": "dinner",
+			"servings": 4,
+			"total_minutes": 60,
+			"ingredients": [
+				{ "name": "Cashews", "quantity": 1, "unit": "cup", "aisle": "Baking", "pantry_staple": false, "prep_note": "raw" },
+				{ "name": "Yellow onion", "quantity": 2, "unit": "each", "aisle": "Produce", "pantry_staple": true, "prep_note": "thinly sliced" },
+				{ "name": "Garlic", "quantity": 4, "unit": "clove", "aisle": "Produce", "pantry_staple": true, "prep_note": "minced" },
+				{ "name": "Cremini mushrooms", "quantity": 1.5, "unit": "lb", "aisle": "Produce", "pantry_staple": false, "prep_note": "chestnut mushrooms in the UK; halved" },
+				{ "name": "Oyster mushrooms", "quantity": 0.5, "unit": "lb", "aisle": "Produce", "pantry_staple": false, "prep_note": "or other wild mushrooms; torn" },
+				{ "name": "Fresh thyme", "quantity": 1, "unit": "bunch", "aisle": "Produce", "pantry_staple": false },
+				{ "name": "Tomato paste", "quantity": 1, "unit": "tbsp", "aisle": "Canned & Jarred", "pantry_staple": true },
+				{ "name": "All-purpose flour", "quantity": 2, "unit": "tbsp", "aisle": "Baking", "pantry_staple": true },
+				{ "name": "Sweet paprika", "quantity": 2, "unit": "tsp", "aisle": "Spices", "pantry_staple": true },
+				{ "name": "Vegetable stock", "quantity": 3, "unit": "cup", "aisle": "Canned & Jarred", "pantry_staple": true },
+				{ "name": "Dijon mustard", "quantity": 1, "unit": "tbsp", "aisle": "Canned & Jarred", "pantry_staple": true },
+				{ "name": "Worcestershire sauce", "quantity": 1, "unit": "tbsp", "aisle": "Canned & Jarred", "pantry_staple": true, "prep_note": "or Henderson's Relish" },
+				{ "name": "Fresh parsley", "quantity": 1, "unit": "bunch", "aisle": "Produce", "pantry_staple": false, "prep_note": "chopped" },
+				{ "name": "Olive oil", "quantity": 3, "unit": "tbsp", "aisle": "Oils & Vinegars", "pantry_staple": true },
+				{ "name": "Long-grain white rice", "quantity": 2, "unit": "cup", "aisle": "Grains & Noodles", "pantry_staple": true, "prep_note": "to serve" },
+				{ "name": "Kosher salt", "quantity": null, "unit": "to taste", "aisle": "Spices", "pantry_staple": true }
+			],
+			"steps": [
+				{ "instruction": "Cover the cashews with water in a small pan and simmer until soft.", "equipment": "stovetop", "active_minutes": 2, "passive_minutes": 20, "can_batch_with": "boil_water" },
+				{ "instruction": "Cook the rice; keep it covered once done.", "equipment": "stovetop", "active_minutes": 3, "passive_minutes": 20, "can_batch_with": "cook_rice" },
+				{ "instruction": "Slice the onions, mince the garlic, halve the cremini and tear the oyster mushrooms; pick the thyme leaves.", "equipment": "none", "active_minutes": 10, "passive_minutes": 0, "can_batch_with": "chop_onion" },
+				{ "instruction": "Brown the mushrooms in batches in a hot pan with a little oil, without crowding them. Set aside a handful of the oyster mushrooms for the top.", "equipment": "stovetop", "active_minutes": 12, "passive_minutes": 0, "depends_on_step": 3 },
+				{ "instruction": "In a large pan, cook the onions slowly in olive oil until soft and golden.", "equipment": "stovetop", "active_minutes": 3, "passive_minutes": 20, "depends_on_step": 3 },
+				{ "instruction": "Drain the cashews and blend with about a cup of fresh water until completely smooth.", "equipment": "none", "active_minutes": 4, "passive_minutes": 0, "depends_on_step": 1 },
+				{ "instruction": "Add the garlic, thyme and tomato paste to the onions for a couple of minutes, then stir in the flour and paprika.", "equipment": "stovetop", "active_minutes": 4, "passive_minutes": 0, "depends_on_step": 5 },
+				{ "instruction": "Gradually stir in the stock and let it thicken, then add the cashew cream and the mushrooms and simmer briefly.", "equipment": "stovetop", "active_minutes": 3, "passive_minutes": 5, "depends_on_step": 7 },
+				{ "instruction": "Stir in the mustard, Worcestershire and most of the parsley; season. Top with the saved mushrooms and the rest of the parsley, and pack with the rice.", "equipment": "none", "active_minutes": 3, "passive_minutes": 0, "depends_on_step": 8 }
+			]
+		},
+		{
+			"name": "Red Lentil, Lemon and Yogurt Soup",
+			"source_url": "https://kahakaikitchen.blogspot.com/2013/09/donna-hays-red-lentil-lemon-and-yogurt.html",
+			"source_credit": "Donna Hay, Modern Classics Book 1 (shared by Kahakai Kitchen)",
+			"notes": "Keeps well for lunches. Pack the yogurt topping separately and add it after reheating.",
+			"cuisine": "Mediterranean",
+			"meal_type": "lunch",
+			"servings": 4,
+			"total_minutes": 30,
+			"ingredients": [
+				{ "name": "Olive oil", "quantity": 1, "unit": "tbsp", "aisle": "Oils & Vinegars", "pantry_staple": true },
+				{ "name": "Yellow onion", "quantity": 2, "unit": "each", "aisle": "Produce", "pantry_staple": true, "prep_note": "finely chopped" },
+				{ "name": "Ground cumin", "quantity": 1, "unit": "tsp", "aisle": "Spices", "pantry_staple": true },
+				{ "name": "Ground coriander", "quantity": 1, "unit": "tsp", "aisle": "Spices", "pantry_staple": true },
+				{ "name": "Red lentils", "quantity": 1.5, "unit": "cup", "aisle": "Grains & Noodles", "pantry_staple": false },
+				{ "name": "Vegetable stock", "quantity": 3, "unit": "cup", "aisle": "Canned & Jarred", "pantry_staple": true },
+				{ "name": "Lemon", "quantity": 1, "unit": "each", "aisle": "Produce", "pantry_staple": false, "prep_note": "zest finely grated" },
+				{ "name": "Baby spinach", "quantity": 10, "unit": "oz", "aisle": "Produce", "pantry_staple": false, "prep_note": "optional, roughly chopped" },
+				{ "name": "Greek yogurt", "quantity": 1, "unit": "cup", "aisle": "Dairy & Eggs", "pantry_staple": false, "prep_note": "thick, for the topping" },
+				{ "name": "Fresh cilantro", "quantity": 1, "unit": "bunch", "aisle": "Produce", "pantry_staple": false, "prep_note": "chopped, for the topping" },
+				{ "name": "Kosher salt", "quantity": null, "unit": "to taste", "aisle": "Spices", "pantry_staple": true },
+				{ "name": "Black pepper", "quantity": null, "unit": "to taste", "aisle": "Spices", "pantry_staple": true }
+			],
+			"steps": [
+				{ "instruction": "Finely chop the onions and grate the lemon zest.", "equipment": "none", "active_minutes": 5, "passive_minutes": 0, "can_batch_with": "chop_onion" },
+				{ "instruction": "In a large pot, cook the onions in the oil with the cumin and coriander over medium-high heat until well browned.", "equipment": "stovetop", "active_minutes": 6, "passive_minutes": 0, "depends_on_step": 1 },
+				{ "instruction": "Add the lentils, stock, 4 cups of water and the lemon zest and bring to a boil.", "equipment": "stovetop", "active_minutes": 2, "passive_minutes": 5, "depends_on_step": 2 },
+				{ "instruction": "Cover and simmer until the lentils are soft and falling apart. Stir in the spinach, if using, until wilted, and season.", "equipment": "stovetop", "active_minutes": 2, "passive_minutes": 15, "depends_on_step": 3 },
+				{ "instruction": "Mix the yogurt with the chopped cilantro for the topping, and pack it separately from the soup.", "equipment": "none", "active_minutes": 3, "passive_minutes": 0 }
+			]
+		}
+	]
+}

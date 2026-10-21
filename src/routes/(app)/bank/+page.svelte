@@ -20,7 +20,8 @@
 		)
 	);
 	const favourites = $derived(shown.filter((r) => r.favourite));
-	const others = $derived(shown.filter((r) => !r.favourite && !r.retired));
+	const saved = $derived(shown.filter((r) => r.savedToTry && !r.favourite));
+	const others = $derived(shown.filter((r) => !r.favourite && !r.retired && !r.savedToTry));
 	const retired = $derived(shown.filter((r) => r.retired));
 
 	function lastMadeLabel(iso: string | null) {
@@ -77,7 +78,8 @@
 		<a class="card recipe" href="/bank/{r.id}">
 			<span class="tags">
 				{#if r.favourite}<span class="tag bank">Favourite</span>{/if}
-				{#if r.addedByYou}<span class="tag hands">Your recipe</span>{/if}
+				{#if r.addedByYou}<span class="tag saved">Your recipe</span>{/if}
+				{#if r.savedToTry}<span class="tag saved">Saved to try</span>{/if}
 				{#if r.retired}<span class="tag muted-tag">Not again</span>{/if}
 			</span>
 			<span class="name">{r.name}</span>
@@ -90,6 +92,7 @@
 				{#if lastMadeLabel(r.lastMade)}{' · '}{lastMadeLabel(r.lastMade)}{/if}
 			</span>
 			{#if r.latestTweak}<span class="tweak">Your tweak: {r.latestTweak}</span>{/if}
+			{#if r.sourceCredit}<span class="credit">Recipe by {r.sourceCredit}</span>{/if}
 		</a>
 	{/snippet}
 
@@ -98,6 +101,17 @@
 			<h2>Favourites <span class="count">{favourites.length}</span></h2>
 			<div class="grid">
 				{#each favourites as r (r.id)}{@render card(r)}{/each}
+			</div>
+		</section>
+	{/if}
+	{#if saved.length}
+		<section>
+			<h2>Saved to try <span class="count">{saved.length}</span></h2>
+			<p class="muted small">
+				Recipes you found and want to cook. They’ll come up as options in weekly menus.
+			</p>
+			<div class="grid">
+				{#each saved as r (r.id)}{@render card(r)}{/each}
 			</div>
 		</section>
 	{/if}
@@ -205,9 +219,10 @@
 		gap: 6px;
 		min-height: 4px;
 	}
-	.tag.hands {
-		background: var(--tag-hands-bg);
-		color: var(--tag-hands-ink);
+	.credit {
+		color: var(--ink-secondary);
+		font-size: 0.8125rem;
+		font-style: italic;
 	}
 	.tag.muted-tag {
 		background: var(--border);

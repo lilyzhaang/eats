@@ -458,4 +458,7 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Rate shows the most recent finished week (a week finishes when the next menu is approved) | So the debrief happens after cooking, not right at lock-in |
 | Every Claude request is logged with token use; an answer that can't be saved is reused on retry | Cost visibility; never pay twice for one answer |
 | No viewer passcode: anyone with the link can view read-only without signing in; only owners sign in (owner passcode) | Lily's call (Oct 19, 2026): fine to show the app freely as long as visitors can't change anything or see internal data. Supersedes the two-passcode design in §10; changes still server-enforced; drafts, Claude logs and settings stay owner-only; noindex for search engines |
+| Recipe bank page (read-only, Bank tab) and a "Keep screen on" switch on Cook (Screen Wake Lock) | Lily and Andrei's requests, Oct 21, 2026 |
+| Recipes found online are added as "Saved to try" (not favourites) from `scripts/saved-recipes.json` via `npm run recipes:load`; menus offer up to one per matching slot until cooked | They haven't tried them yet; ratings decide if they become favourites |
+| Every recipe from a creator carries `source_credit` + link, shown on cards and bank pages; the app stores its own wording, never the creator's text | Credit creators; public repo |
 

@@ -58,16 +58,20 @@
 				{#each slot.options as option (option.offerId)}
 					<article class="card option">
 						<span class="letter">{option.letter}</span>
-						<span class="tag" class:ai={!option.fromBank} class:bank={option.fromBank}>
-							{option.fromBank ? 'Recipe bank' : 'New · AI pick'}
-						</span>
+						{#if option.fromBank}
+							<span class="tag bank">Recipe bank</span>
+						{:else if option.savedToTry}
+							<span class="tag saved">Saved to try</span>
+						{:else}
+							<span class="tag ai">New · AI pick</span>
+						{/if}
 						<h3>{option.name}</h3>
 						<p class="meta">
 							{option.cuisine}{#if option.totalMinutes}{' · '}{option.totalMinutes} min{/if}{#if option.servings}{' · '}{option.servings}
 								portions{/if}
 							{#if option.sourceUrl}
 								{' · '}<a href={option.sourceUrl} target="_blank" rel="noopener noreferrer"
-									>source</a
+									>{option.sourceCredit ? `recipe by ${option.sourceCredit}` : 'source'}</a
 								>
 							{/if}
 						</p>

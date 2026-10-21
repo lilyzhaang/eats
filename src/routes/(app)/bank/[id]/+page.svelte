@@ -26,17 +26,22 @@
 
 <div class="tags">
 	{#if r.favourite}<span class="tag bank">Favourite</span>{/if}
-	{#if r.addedByYou}<span class="tag hands">Your recipe</span>{/if}
+	{#if r.addedByYou}<span class="tag saved">Your recipe</span>{/if}
+	{#if r.savedToTry}<span class="tag saved">Saved to try</span>{/if}
 	{#if r.retired}<span class="tag muted-tag">Not again</span>{/if}
 </div>
 <h1>{r.name}</h1>
 <p class="muted">
 	{r.cuisine}{#if r.totalMinutes}{' · '}{r.totalMinutes} min{/if}{#if r.servings}{' · '}makes
 		{r.servings}{/if}
-	{#if r.sourceUrl}
-		{' · '}<a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">original recipe</a>
-	{/if}
 </p>
+{#if r.sourceUrl}
+	<p class="credit">
+		Recipe by <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer"
+			>{r.sourceCredit ?? 'the original creator'}</a
+		>. The ingredients and steps below are this app’s own version; follow the link for the original.
+	</p>
+{/if}
 
 <dl class="stats">
 	<div class="card">
@@ -115,9 +120,10 @@
 		gap: 6px;
 		margin-bottom: 8px;
 	}
-	.tag.hands {
-		background: var(--tag-hands-bg);
-		color: var(--tag-hands-ink);
+	.credit {
+		color: var(--ink-secondary);
+		font-size: 0.9375rem;
+		max-width: 62ch;
 	}
 	.tag.muted-tag {
 		background: var(--border);

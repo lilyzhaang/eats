@@ -13,8 +13,12 @@ export type BankRecipe = {
 	servings: number | null;
 	sourceUrl: string | null;
 	notes: string | null;
-	/** Added by Lily or Andrei rather than suggested by Claude. */
+	/** Who created it, shown as a credit with the link. */
+	sourceCredit: string | null;
+	/** Added by Lily or Andrei as a favourite. */
 	addedByYou: boolean;
+	/** Saved to try and not cooked yet. */
+	savedToTry: boolean;
 	timesMade: number;
 	timesOffered: number;
 	avgRating: number | null;
@@ -29,7 +33,7 @@ export type BankRecipe = {
 // "Made" = the agreed pick in a week that was locked in (or finished).
 const STATS = `
 	SELECT r.id, r.name, r.cuisine, r.meal_type, r.total_minutes, r.servings, r.source_url, r.notes,
-	       r.in_bank, r.status,
+	       r.in_bank, r.to_try, r.source_credit, r.status,
 	       (SELECT count(*) FROM offers o JOIN weeks w ON w.id = o.week_id
 	         WHERE o.recipe_id = r.id AND w.is_draft = 0) AS times_offered,
 	       (SELECT count(*) FROM offers o JOIN weeks w ON w.id = o.week_id
@@ -58,7 +62,9 @@ function toBankRecipe(row: Record<string, unknown>): BankRecipe {
 		servings: row.servings as number | null,
 		sourceUrl: row.source_url as string | null,
 		notes: row.notes as string | null,
+		sourceCredit: row.source_credit as string | null,
 		addedByYou: row.in_bank === 1,
+		savedToTry: row.to_try === 1 && (row.times_made as number) === 0,
 		timesMade: row.times_made as number,
 		timesOffered: row.times_offered as number,
 		avgRating: avg,
@@ -69,13 +75,12 @@ function toBankRecipe(row: Record<string, unknown>): BankRecipe {
 	};
 }
 
-/** Everything in the bank: recipes you've made, plus ones you added. */
+/** Everything in the bank: recipes you've made, ones you added, and ones saved to try. */
 export function listBank(): BankRecipe[] {
 	return (
-		getDb().prepare(`SELECT * FROM (${STATS}) WHERE times_made > 0 OR in_bank = 1`).all() as Record<
-			string,
-			unknown
-		>[]
+		getDb()
+			.prepare(`SELECT * FROM (${STATS}) WHERE times_made > 0 OR in_bank = 1 OR to_try = 1`)
+			.all() as Record<string, unknown>[]
 	)
 		.map(toBankRecipe)
 		.sort(
@@ -91,7 +96,9 @@ export function listBank(): BankRecipe[] {
 export function getBankRecipe(id: number) {
 	const db = getDb();
 	const row = db
-		.prepare(`SELECT * FROM (${STATS}) WHERE id = ? AND (times_made > 0 OR in_bank = 1)`)
+		.prepare(
+			`SELECT * FROM (${STATS}) WHERE id = ? AND (times_made > 0 OR in_bank = 1 OR to_try = 1)`
+		)
 		.get(id) as Record<string, unknown> | undefined;
 	if (!row) return null;
 
