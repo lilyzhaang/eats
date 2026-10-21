@@ -18,6 +18,16 @@ services:
     env_file: .env
     environment:
       DATABASE_PATH: /data/eats.db
+    # Eats is public, so it runs locked down: nothing outside /data and /tmp
+    # can be written, it can't gain privileges, and it can't use up the
+    # server's memory or processes, which other apps share.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    mem_limit: 512m
+    pids_limit: 256
     volumes:
       # The database file lives here on the server. Back up this folder.
       - ./data:/data

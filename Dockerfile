@@ -32,9 +32,11 @@ COPY prompts ./prompts
 COPY scripts ./scripts
 
 # The database lives on a volume, so it survives updates to the app.
-# The app runs as the unprivileged "node" user, which needs to own /data.
-RUN mkdir -p /data && chown node:node /data
+# The app runs as user id 10001, which needs to own /data. Not the image's
+# "node" user: that is id 1000, the same as the first login on most Linux
+# servers (omarchy included), whose files the app must not be able to touch.
+RUN mkdir -p /data && chown 10001:10001 /data
 VOLUME /data
 EXPOSE 3000
-USER node
+USER 10001:10001
 CMD ["node", "build"]

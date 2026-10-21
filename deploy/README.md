@@ -70,4 +70,6 @@ Changing the owner passcode signs everyone out, so they sign in again with the n
 
 - The app only listens on `127.0.0.1:3000`, so the home network can't reach it except through Funnel.
 - The database is one file, `data/eats.db`. Back up the whole `data/` folder.
+- The app runs as user id 10001 with a read-only file system, no extra privileges, and memory and process limits, so a break-in at Eats can't reach other apps on omarchy. `data/` belongs to 10001, so reading it directly on the server needs `sudo`; the backup command above works without it.
+- Moving an existing server to this version: run `sudo chown -R 10001:10001 ~/apps/eats/data` on omarchy once, before `npm run deploy`. Without it the app can't open its database.
 - Docker images: each deploy removes old Eats images (labelled `app=eats`) so they don't pile up on the disk. Other apps' images are never touched.

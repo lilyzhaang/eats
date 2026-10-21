@@ -65,11 +65,11 @@ ENV
 fi
 
 say "3. Database folder"
-# The app runs as user id 1000 inside the container, so it needs to own this.
+# The app runs as user id 10001 inside the container, so it needs to own this.
 mkdir -p data
-if [ "$(stat -c %u data)" != "1000" ]; then
-	echo "Giving the data folder to user id 1000 (may ask for your password)…"
-	sudo chown 1000:1000 data
+if [ "$(stat -c %u data)" != "10001" ]; then
+	echo "Giving the data folder to user id 10001 (may ask for your password)…"
+	sudo chown -R 10001:10001 data
 fi
 
 say "4. Building and starting the app (first build takes a few minutes)"
