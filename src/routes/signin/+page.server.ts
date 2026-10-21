@@ -25,6 +25,18 @@ function listOwners(): Owner[] {
 }
 
 /**
+ * Who is this, for counting wrong passcodes? On the server, every visitor
+ * arrives through Tailscale Funnel, so the direct address is always the
+ * server itself; Funnel passes the visitor's real address in
+ * X-Forwarded-For. The app only listens on 127.0.0.1, so that header can
+ * only come from Funnel, not from someone faking it.
+ */
+function visitorAddress(request: Request, direct: string): string {
+	const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+	return forwarded || direct;
+}
+
+/**
  * Only allow redirects to pages inside this app, so a crafted link
  * can't bounce someone to another website after they sign in.
  */
@@ -48,7 +60,7 @@ export const actions: Actions = {
 		const passcode = String(form.get('passcode') ?? '');
 		const personaId = Number(form.get('persona'));
 		const next = safeNext(String(form.get('next') ?? ''));
-		const address = getClientAddress();
+		const address = visitorAddress(request, getClientAddress());
 
 		if (isRateLimited(address)) {
 			return fail(429, { personaId, message: 'Too many tries. Wait 15 minutes and try again.' });
@@ -61,6 +73,7 @@ export const actions: Actions = {
 
 		if (!checkOwnerPasscode(passcode)) {
 			recordFailedAttempt(address);
+			console.warn(`Wrong passcode from ${address}`);
 			return fail(400, { personaId, message: 'That passcode didn’t work.' });
 		}
 

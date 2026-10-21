@@ -109,7 +109,14 @@
 	{/if}
 {:else}
 	<h1>No menu yet</h1>
-	<p class="muted">Once a week’s options are imported, they’ll show up here.</p>
+	{#if canPick}
+		<p class="muted">
+			Ask Claude for this week’s options. You’ll review them before they show up here.
+		</p>
+		<a class="button primary" href="/review">Plan the first week</a>
+	{:else}
+		<p class="muted">Lily and Andrei haven’t planned a week yet. Check back soon.</p>
+	{/if}
 {/if}
 
 <style>
