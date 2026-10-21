@@ -7,10 +7,11 @@
 #   1. Makes sure everything is committed and pushed to GitHub, so the live
 #      site always matches a version you can see on GitHub.
 #   2. Runs the tests and the build, so a broken version never goes live.
-#   3. Over SSH, asks the server to build and run exactly that version, and
-#      waits until the live app answers.
+#   3. Over SSH, tells the server to fetch exactly that version and rebuild.
+#   4. Checks the live app answers.
 #
-# Settings: EATS_SERVER (default "omarchy", see ~/.ssh/config).
+# Settings: EATS_SERVER (default "omarchy", see ~/.ssh/config). Lily's key
+# can only run a few fixed commands on omarchy (see deploy/README.md).
 
 set -euo pipefail
 
@@ -36,9 +37,14 @@ npm run build --silent >/dev/null
 echo "ok"
 
 say "3. Updating the server"
-# The server only accepts a few fixed commands from this Mac's key
-# (see deploy/server/eats-deploy): it builds exactly this commit, checks
-# the app answers, and reports back.
-ssh "$SERVER" deploy "$(git rev-parse HEAD)" ||
-	stop "Deploy failed. See the log with: npm run server:logs"
-say "Live: version $VERSION is running."
+ssh "$SERVER" deploy "$(git rev-parse HEAD)"
+
+say "4. Checking it's up"
+for _ in $(seq 1 30); do
+	if ssh "$SERVER" health; then
+		say "Live: version $VERSION is running."
+		exit 0
+	fi
+	sleep 2
+done
+stop "The app didn't answer after deploying. See the logs: ssh $SERVER logs 50"

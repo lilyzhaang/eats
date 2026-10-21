@@ -55,14 +55,17 @@ When you both lock in your picks, Claude writes the **prep-day plan** for those 
 
 ## Everyday commands
 
-| Command                          | What it does                                                                           |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run dev`                    | Start the app on your Mac                                                              |
-| `npm test`                       | Run the automated checks                                                               |
-| `npm run check`                  | Look for code mistakes (type errors)                                                   |
-| `npm run db:reset`               | Wipe your **local** database and reload the sample data. Refuses to run in production. |
-| `npm run db:migrate`             | Apply new database changes (the app also does this when it starts)                     |
-| `npm run build` then `npm start` | Run the production version locally                                                     |
+| Command                          | What it does                                                                                                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                    | Start the app on your Mac                                                                                                                                         |
+| `npm test`                       | Run the automated checks                                                                                                                                          |
+| `npm run check`                  | Look for code mistakes (type errors)                                                                                                                              |
+| `npm run db:reset`               | Wipe your **local** database and reload the sample data. Refuses to run in production.                                                                            |
+| `npm run db:migrate`             | Apply new database changes (the app also does this when it starts)                                                                                                |
+| `npm run build` then `npm start` | Run the production version locally                                                                                                                                |
+| `npm run deploy`                 | Put the current version live on omarchy ([details](deploy/README.md))                                                                                             |
+| `npm run db:backup`              | Make a safe copy of your **local** database in `data/backups/` (on omarchy: `ssh omarchy backup`)                                                                 |
+| `npm run recipes:load`           | Add the recipes in `scripts/saved-recipes.json` as "Saved to try" to your local database (skips ones already added). On omarchy, Andrei runs it in the container. |
 
 ## How the code is laid out
 
