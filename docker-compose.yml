@@ -1,17 +1,28 @@
-# Run Eats with one command:  docker compose up -d
+# Runs Eats on the server (omarchy). See deploy/README.md.
 #
-# Before the first run, create a .env file next to this one (copy .env.example)
-# with real passcodes and ORIGIN set to the address people will use.
+#   docker compose up -d --build     start or update
+#   docker compose logs -f           watch the logs
+#   docker compose down              stop
+#
+# Settings and secrets come from the .env file next to this one, which only
+# exists on the server (never in git).
 
 services:
   eats:
     build: .
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      # Only reachable from the server itself. Tailscale Funnel forwards the
+      # public https://….ts.net address to this port.
+      - '127.0.0.1:3000:3000'
     env_file: .env
     environment:
       DATABASE_PATH: /data/eats.db
     volumes:
-      # The database file lives here on the host machine. Back up this folder.
+      # The database file lives here on the server. Back up this folder.
       - ./data:/data
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:3000/pick').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

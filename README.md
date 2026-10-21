@@ -103,16 +103,15 @@ There are no accounts.
 - **Lily and Andrei tap Sign in** and enter `OWNER_PASSCODE` (an environment variable, never in the code) to pick, tick, rate and generate menus. Devices stay signed in for a year; changing the passcode signs everyone out. After 10 wrong tries, a device has to wait 15 minutes.
 - Search engines are asked not to list the site.
 
-## Hosting (later)
+## Live version
 
-The app runs anywhere that runs a Docker container. On a machine with Docker:
+The live app runs on Andrei's server (omarchy) in Docker, published with Tailscale Funnel. To put a new version live, commit and push, then:
 
 ```bash
-cp .env.example .env   # then set real passcodes and ORIGIN
-docker compose up -d
+npm run deploy
 ```
 
-The database is stored in `./data` on the host. Back up that folder.
+Setup, server commands, backups and rollbacks: [deploy/README.md](deploy/README.md).
 
 ## Known quirks
 

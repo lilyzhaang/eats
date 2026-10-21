@@ -16,7 +16,9 @@
 		"format": "prettier --write .",
 		"db:reset": "node --env-file-if-exists=.env scripts/db-reset.ts",
 		"db:migrate": "node --env-file-if-exists=.env scripts/db-migrate.ts",
-		"start": "node --env-file-if-exists=.env build"
+		"start": "node --env-file-if-exists=.env build",
+		"deploy": "bash deploy/deploy.sh",
+		"db:backup": "node --env-file-if-exists=.env scripts/db-backup.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-node": "^6.0.0",

@@ -6,6 +6,7 @@
 
 # ── Stage 1: build the app ──────────────────────────────────────────────
 FROM node:24-slim AS build
+LABEL app=eats
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -14,6 +15,8 @@ RUN npm run build && npm prune --omit=dev
 
 # ── Stage 2: the small image that actually runs ─────────────────────────
 FROM node:24-slim
+# Lets deploys clean up old Eats images without touching anything else on the server.
+LABEL app=eats
 WORKDIR /app
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -25,6 +28,8 @@ COPY --from=build /app/package.json ./package.json
 COPY migrations ./migrations
 # Claude's instructions for writing menus and prep plans.
 COPY prompts ./prompts
+# Maintenance commands, e.g. the database backup.
+COPY scripts ./scripts
 
 # The database lives on a volume, so it survives updates to the app.
 # The app runs as the unprivileged "node" user, which needs to own /data.
