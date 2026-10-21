@@ -6,6 +6,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import KeepAwake from '#lib/components/KeepAwake.svelte';
 	import { formatClock, formatDuration } from '#lib/format.ts';
 	import type { Lane } from '#lib/server/prep-plan.ts';
 	import type { PageProps } from './$types';
@@ -77,6 +78,8 @@
 			</div>
 		{/if}
 	</dl>
+
+	<KeepAwake />
 
 	<p class="progress muted" role="status">
 		{done === plan.steps.length

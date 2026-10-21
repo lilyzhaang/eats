@@ -50,29 +50,33 @@ export function weekExists(weekOf: string): boolean {
 type BankPick = { recipeId: number; name: string; cuisine: string };
 
 /**
- * Favourites eligible to come back: average rating 4+, not retired, nobody
- * said "Never", picked at least half the times offered, and not made in the
- * last 3 weeks (so favourites rotate instead of repeating).
+ * Favourites eligible to come back, not retired, nobody said "Never", and
+ * not made in the last 3 weeks (so favourites rotate instead of repeating):
+ * - recipes you added to the bank yourselves, or
+ * - recipes you've made that average 4+ stars and were picked at least
+ *   half the times they were offered.
  */
 function chooseBankPicks(weekOf: string, perSlot: number): Map<Slot, BankPick[]> {
 	const candidates = getDb()
 		.prepare(
-			`SELECT r.id, r.name, r.cuisine, r.meal_type,
-			        avg(ra.stars) AS avg_rating,
-			        max(CASE WHEN o.is_final_pick = 1 THEN w.week_of END) AS last_made
-			 FROM recipes r
-			 JOIN offers o ON o.recipe_id = r.id
-			 JOIN weeks w ON w.id = o.week_id AND w.week_of < :week_of
-			 LEFT JOIN ratings ra ON ra.offer_id = o.id
-			 WHERE r.status = 'active'
-			   AND NOT EXISTS (SELECT 1 FROM ratings rn JOIN offers on2 ON on2.id = rn.offer_id
-			                   WHERE on2.recipe_id = r.id AND rn.verdict = 'never')
-			 GROUP BY r.id
-			 HAVING avg_rating >= 4
-			    AND sum(o.is_final_pick) * 2 >= count(DISTINCT o.id)
-			    AND last_made IS NOT NULL
-			    AND last_made <= date(:week_of, '-21 days')
-			 ORDER BY avg_rating DESC, last_made ASC`
+			`SELECT * FROM (
+			   SELECT r.id, r.name, r.cuisine, r.meal_type, r.in_bank,
+			          (SELECT avg(ra.stars) FROM ratings ra JOIN offers o ON o.id = ra.offer_id
+			            JOIN weeks w ON w.id = o.week_id
+			            WHERE o.recipe_id = r.id AND w.week_of < :week_of) AS avg_rating,
+			          (SELECT count(*) FROM offers o JOIN weeks w ON w.id = o.week_id
+			            WHERE o.recipe_id = r.id AND w.week_of < :week_of AND w.is_draft = 0) AS offered,
+			          (SELECT count(*) FROM offers o JOIN weeks w ON w.id = o.week_id
+			            WHERE o.recipe_id = r.id AND w.week_of < :week_of AND o.is_final_pick = 1) AS picked,
+			          (SELECT max(w.week_of) FROM offers o JOIN weeks w ON w.id = o.week_id
+			            WHERE o.recipe_id = r.id AND w.week_of < :week_of AND o.is_final_pick = 1) AS last_made
+			   FROM recipes r
+			   WHERE r.status = 'active'
+			     AND NOT EXISTS (SELECT 1 FROM ratings rn JOIN offers on2 ON on2.id = rn.offer_id
+			                     WHERE on2.recipe_id = r.id AND rn.verdict = 'never'))
+			 WHERE (last_made IS NULL OR last_made <= date(:week_of, '-21 days'))
+			   AND (in_bank = 1 OR (picked > 0 AND avg_rating >= 4 AND picked * 2 >= offered))
+			 ORDER BY coalesce(avg_rating, 4.5) DESC, last_made ASC`
 		)
 		.all({ week_of: weekOf }) as { id: number; name: string; cuisine: string; meal_type: string }[];
 

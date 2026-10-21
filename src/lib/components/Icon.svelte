@@ -3,7 +3,7 @@
   Usage: <Icon name="pick" />
 -->
 <script lang="ts">
-	type Props = { name: 'pick' | 'shop' | 'cook' | 'rate'; size?: number };
+	type Props = { name: 'pick' | 'shop' | 'cook' | 'rate' | 'bank'; size?: number };
 	let { name, size = 22 }: Props = $props();
 </script>
 
@@ -34,5 +34,9 @@
 	{:else if name === 'rate'}
 		<!-- Star -->
 		<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5z" />
+	{:else if name === 'bank'}
+		<!-- Open recipe book -->
+		<path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z" />
+		<path d="M12 6.5v13" />
 	{/if}
 </svg>

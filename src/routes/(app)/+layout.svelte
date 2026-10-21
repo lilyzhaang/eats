@@ -14,7 +14,8 @@
 		{ href: '/pick', label: 'Pick', icon: 'pick' },
 		{ href: '/shop', label: 'Shop', icon: 'shop' },
 		{ href: '/cook', label: 'Cook', icon: 'cook' },
-		{ href: '/rate', label: 'Rate', icon: 'rate' }
+		{ href: '/rate', label: 'Rate', icon: 'rate' },
+		{ href: '/bank', label: 'Bank', icon: 'bank' }
 	] as const;
 
 	let menuOpen = $state(false);
@@ -195,7 +196,7 @@
 		right: 0;
 		bottom: 0;
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(5, 1fr);
 		background: var(--surface);
 		border-top: 1px solid var(--border);
 		padding-bottom: env(safe-area-inset-bottom);
