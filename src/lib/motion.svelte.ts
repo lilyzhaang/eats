@@ -1,6 +1,6 @@
 // Motion settings: how the tab pill and page transitions move.
 //
-// DEFAULTS are what everyone gets. On your Mac's dev copy, the Motion tuner
+// DEFAULTS are what everyone gets (tuned by Lily and Andrei, Oct 21, 2026). On your Mac's dev copy, the Motion tuner
 // (bottom-right corner) changes these live; tune until it feels right, press
 // "Copy settings" and paste the values here to make them permanent.
 //
@@ -10,21 +10,21 @@ import { prefersReducedMotion } from 'svelte/motion';
 
 export const DEFAULTS = {
 	/** How hard the tab pill pulls toward its new tab (higher = snappier). */
-	tabStiffness: 0.16,
+	tabStiffness: 0.15,
 	/** How quickly the pill stops wobbling (lower = more bounce). */
-	tabDamping: 0.62,
+	tabDamping: 1,
 	/** How big the tab icon pops when you tap it (1 = no pop). Phone tab bar. */
-	tabIconPop: 1.2,
+	tabIconPop: 1.04,
 	/** How far pages slide when you switch tabs, in pixels. */
-	pageSlide: 36,
+	pageSlide: 8,
 	/** How long the new page takes to arrive, in milliseconds. */
 	pageDuration: 380,
 	/** How much the new page overshoots before settling (0 = none). */
-	pageOvershoot: 1.4,
+	pageOvershoot: 2.2,
 	/** How long the old page takes to leave, in milliseconds. */
-	pageExitDuration: 160,
+	pageExitDuration: 0,
 	/** How much the new page grows in from (0.9 = from 90% size, 1 = no zoom). */
-	pageScale: 0.985
+	pageScale: 1
 };
 
 export type MotionSettings = typeof DEFAULTS;
