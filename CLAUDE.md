@@ -461,4 +461,6 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Recipe bank page (read-only, Bank tab) and a "Keep screen on" switch on Cook (Screen Wake Lock) | Lily and Andrei's requests, Oct 21, 2026 |
 | Recipes found online are added as "Saved to try" (not favourites) from `scripts/saved-recipes.json` via `npm run recipes:load`; menus offer up to one per matching slot until cooked | They haven't tried them yet; ratings decide if they become favourites |
 | Every recipe from a creator carries `source_credit` + link, shown on cards and bank pages; the app stores its own wording, never the creator's text | Credit creators; public repo |
+| Models per job: Sonnet 5.5 for menus and swaps, Opus 5.5 for the cook-day plan; grocery list stays rule-based (no Claude) | Balance cost and quality (Oct 23, 2026): recipe writing is fine on Sonnet at half the price; sequencing is the core feature and one small request a week |
+| Plans are stored per set of picks and reused if the picks return to that set; automatic rewrites capped at 3 a week, then an owner taps "Write the plan" | Generate once, store until the next selection; never pay twice; flipping picks can't run up a bill |
 

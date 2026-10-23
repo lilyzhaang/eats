@@ -145,6 +145,19 @@
 	{:else}
 		<p class="muted">Lily or Andrei can try again.</p>
 	{/if}
+{:else if data.reason === 'limit'}
+	<h1>No plan for these picks yet.</h1>
+	<p class="muted">
+		Claude has already written the cook-day plan a few times this week as your picks changed, so it
+		waits to be asked before writing another. Each one uses a little Claude credit.
+	</p>
+	{#if canCheck}
+		<form method="POST" action="?/retry" use:enhance>
+			<button type="submit" class="button primary">Write the plan</button>
+		</form>
+	{:else}
+		<p class="muted">Lily or Andrei can ask for a new plan.</p>
+	{/if}
 {:else if data.reason === 'picking'}
 	<h1>Pick first, then cook.</h1>
 	<p class="muted">The prep-day plan appears once you’ve both agreed on all four meals.</p>

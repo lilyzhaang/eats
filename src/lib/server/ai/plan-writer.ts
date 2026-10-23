@@ -11,7 +11,8 @@ import { SLOTS, type Week } from '../weeks.ts';
 import {
 	askClaude,
 	claudeConfigured,
-	findUnsavedAnswer,
+	countRuns,
+	findStoredAnswer,
 	isRunning,
 	loadPrompt,
 	markSaved,
@@ -48,8 +49,23 @@ export function planNeeded(week: Week): boolean {
  * Start writing the plan in the background if it's needed. Safe to call
  * often: it does nothing if a plan is current or already being written.
  */
+/**
+ * Plans are written automatically (at lock-in, or opening Cook) at most this
+ * many times a week. Flipping picks back and forth can't run up a bill;
+ * after this, someone taps "Write the plan" on Cook to ask again.
+ */
+const AUTO_PLAN_LIMIT = 3;
+
+export function autoPlanLimitReached(week: Week): boolean {
+	return countRuns('prep_plan', week.week_of, 'lock_in') >= AUTO_PLAN_LIMIT;
+}
+
 export function ensurePrepPlan(week: Week, triggeredBy: Trigger): void {
 	if (!claudeConfigured() || !planNeeded(week) || isRunning('prep_plan', week.week_of)) return;
+	// A plan Claude already wrote for these same four recipes is reused for free,
+	// so only count against the limit when Claude would actually be asked.
+	const free = findStoredAnswer('prep_plan', week.week_of, finalPickKey(week.id), PlanAnswer);
+	if (!free && triggeredBy === 'lock_in' && autoPlanLimitReached(week)) return;
 	writePrepPlan(week, triggeredBy).catch((error) => {
 		console.error(`Prep plan for ${week.week_of} failed:`, error.message);
 	});
@@ -101,22 +117,18 @@ export async function writePrepPlan(week: Week, triggeredBy: Trigger): Promise<v
 		note: 'If a recipe has no steps listed, plan it from its name and ingredients the way a home cook would.'
 	};
 
-	// Reuse an answer that arrived but couldn't be saved, rather than paying twice.
-	// (Only if it's for these same recipes; the picks may have changed since.)
-	const names = new Set(recipes.map((r) => r.name.toLowerCase()));
-	const kept = findUnsavedAnswer('prep_plan', week.week_of, PlanAnswer);
-	const keptFits = kept?.answer.steps.every((s) =>
-		s.recipe_names.every((n) => names.has(n.toLowerCase()))
-	);
+	// If Claude already wrote a plan for exactly these four recipes this week
+	// (e.g. the picks changed and then changed back), reuse it: never pay twice.
 	const result =
-		(keptFits ? kept : null) ??
+		findStoredAnswer('prep_plan', week.week_of, key, PlanAnswer) ??
 		(await askClaude({
 			kind: 'prep_plan',
 			weekOf: week.week_of,
 			triggeredBy,
 			prompt: loadPrompt('prep-plan'),
 			schema: PlanAnswer,
-			details
+			details,
+			forKey: key
 		}));
 	const plan = result.answer;
 

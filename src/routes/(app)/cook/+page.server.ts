@@ -3,7 +3,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { claudeConfigured, latestRun } from '#lib/server/ai/claude.ts';
-import { ensurePrepPlan, planNeeded } from '#lib/server/ai/plan-writer.ts';
+import { autoPlanLimitReached, ensurePrepPlan, planNeeded } from '#lib/server/ai/plan-writer.ts';
 import { getPrepPlan, setStepChecked } from '#lib/server/prep-plan.ts';
 import { getCurrentWeek } from '#lib/server/weeks.ts';
 
@@ -20,10 +20,17 @@ export const load: PageServerLoad = ({ locals }) => {
 			ensurePrepPlan(week, 'lock_in');
 			run = latestRun('prep_plan', week.week_of);
 		}
-		if (run?.status === 'running') return { plan: null, reason: 'writing' as const };
-		if (run?.status === 'failed')
-			return { plan: null, reason: 'failed' as const, error: run.error };
-		return { plan: null, reason: 'no-plan' as const };
+		// A plan stored earlier for these same recipes is put back straight away.
+		if (planNeeded(week)) {
+			if (run?.status === 'running') return { plan: null, reason: 'writing' as const };
+			// Written automatically a few times already this week: wait to be asked.
+			// (Checked before failures, which may have been for different picks.)
+			if (claudeConfigured() && autoPlanLimitReached(week))
+				return { plan: null, reason: 'limit' as const };
+			if (run?.status === 'failed')
+				return { plan: null, reason: 'failed' as const, error: run.error };
+			return { plan: null, reason: 'no-plan' as const };
+		}
 	}
 
 	const plan = getPrepPlan(week);

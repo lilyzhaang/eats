@@ -14,8 +14,22 @@ import type { z } from 'zod';
 import { ANTHROPIC_API_KEY } from '$app/env/private';
 import { getDb } from '../app-db.ts';
 
-/** The model that writes menus and plans. Claude Opus 5.5 is Anthropic's current default. */
-export const MODEL = 'claude-opus-5-5';
+/**
+ * Which Claude model does each job. Chosen to balance cost and quality
+ * (Oct 23, 2026; prices per million tokens, input / output):
+ * - Menus and swaps: Claude Sonnet 5.5 ($2 / $10). Writing varied recipes in
+ *   a fixed shape is well within its strengths, at half Opus's price.
+ * - Cook-day plan: Claude Opus 5.5 ($4 / $20). Sequencing four recipes around
+ *   one oven, two burners and idle time is the hardest reasoning in the app,
+ *   and it's one smallish request a week.
+ * The grocery list never uses Claude: the app adds it up itself.
+ * To change a model, change it here (every request logs which one it used).
+ */
+export const MODELS: Record<RunKind, string> = {
+	menu: 'claude-sonnet-5-5',
+	swap: 'claude-sonnet-5-5',
+	prep_plan: 'claude-opus-5-5'
+};
 
 /** Is there an API key? Without one, the Claude features stay switched off. */
 export function claudeConfigured(): boolean {
@@ -94,7 +108,10 @@ export async function askClaude<Schema extends z.ZodType>(options: {
 	prompt: string;
 	details: unknown;
 	schema: Schema;
+	/** What the answer is for (e.g. the four recipes of a plan), so it can be reused. */
+	forKey?: string;
 }): Promise<ClaudeResult<z.infer<Schema>>> {
+	const model = MODELS[options.kind];
 	if (!claudeConfigured()) {
 		throw new Error('No Claude API key is set. Add ANTHROPIC_API_KEY to the settings.');
 	}
@@ -102,8 +119,11 @@ export async function askClaude<Schema extends z.ZodType>(options: {
 	const db = getDb();
 	const runId = Number(
 		db
-			.prepare('INSERT INTO ai_runs (kind, week_of, triggered_by, model) VALUES (?, ?, ?, ?)')
-			.run(options.kind, options.weekOf, options.triggeredBy, MODEL).lastInsertRowid
+			.prepare(
+				'INSERT INTO ai_runs (kind, week_of, triggered_by, model, for_key) VALUES (?, ?, ?, ?, ?)'
+			)
+			.run(options.kind, options.weekOf, options.triggeredBy, model, options.forKey ?? null)
+			.lastInsertRowid
 	);
 	// Tokens are billed even when an answer can't be used, so record them either way.
 	let usage: Anthropic.Beta.BetaUsage | undefined;
@@ -111,7 +131,7 @@ export async function askClaude<Schema extends z.ZodType>(options: {
 	try {
 		// Streaming keeps a long answer (a dozen recipes with steps) from timing out.
 		const stream = getClient().beta.messages.stream({
-			model: MODEL,
+			model,
 			max_tokens: 64000,
 			thinking: { type: 'adaptive' },
 			output_config: { effort: 'high', format: betaZodOutputFormat(options.schema) },
@@ -201,4 +221,39 @@ function describeError(error: unknown): string {
 	if (error instanceof Anthropic.APIError)
 		return `Claude API error ${error.status}: ${error.message}`;
 	return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * An answer Claude already gave for exactly this key this week (whether or
+ * not it was saved at the time), so the same work is never paid for twice.
+ */
+export function findStoredAnswer<Schema extends z.ZodType>(
+	kind: RunKind,
+	weekOf: string,
+	forKey: string,
+	schema: Schema
+): ClaudeResult<z.infer<Schema>> | null {
+	const row = getDb()
+		.prepare(
+			`SELECT id, result_json FROM ai_runs
+			 WHERE kind = ? AND week_of = ? AND for_key = ? AND result_json IS NOT NULL
+			   AND (status = 'succeeded' OR error LIKE ?)
+			 ORDER BY id DESC LIMIT 1`
+		)
+		.get(kind, weekOf, forKey, SAVE_FAILED + '%') as
+		{ id: number; result_json: string } | undefined;
+	if (!row) return null;
+	const parsed = schema.safeParse(JSON.parse(row.result_json));
+	return parsed.success ? { answer: parsed.data, runId: row.id } : null;
+}
+
+/** How many times Claude has been asked for this kind of answer this week. */
+export function countRuns(kind: RunKind, weekOf: string, triggeredBy?: Trigger): number {
+	const row = getDb()
+		.prepare(
+			`SELECT count(*) AS n FROM ai_runs WHERE kind = ? AND week_of = ?
+			 AND (? IS NULL OR triggered_by = ?)`
+		)
+		.get(kind, weekOf, triggeredBy ?? null, triggeredBy ?? null) as { n: number };
+	return row.n;
 }

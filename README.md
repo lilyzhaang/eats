@@ -50,7 +50,9 @@ When you both lock in your picks, Claude writes the **prep-day plan** for those 
 
 - Claude's instructions are plain text in [`prompts/`](prompts/). Edit them like any document.
 - Turn it on by setting `ANTHROPIC_API_KEY` (from [console.anthropic.com](https://console.anthropic.com)) in `.env`.
-- Every request is logged in the `ai_runs` table with its token use. A full menu has cost about $0.66 (Claude Opus 5.5); a prep plan costs less.
+- **Models:** menus and swaps use Claude Sonnet 5.5; the cook-day plan uses Claude Opus 5.5, because sequencing is the hardest part. The grocery list never uses Claude: the app adds it up itself. Change models in one place: `MODELS` in `src/lib/server/ai/claude.ts`.
+- Every request is logged in the `ai_runs` table with its model and token use. A menu costs roughly $0.45 on Sonnet 5.5; a plan roughly $0.25 on Opus 5.5.
+- **Each thing is written once and stored:** one menu per week; one plan per set of four picks. If the picks change and come back to a set that already has a plan, the stored plan is reused for free. Plans are rewritten automatically at most 3 times a week; after that, an owner taps **Write the plan** on Cook.
 - If Claude's answer arrives but can't be saved, trying again reuses it instead of paying twice.
 
 ## Everyday commands
