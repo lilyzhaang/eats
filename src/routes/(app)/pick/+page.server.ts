@@ -3,12 +3,15 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getPickBoard, savePick } from '#lib/server/picks.ts';
+import { getNextMenuStatus } from '#lib/server/review.ts';
 import { getCurrentWeek } from '#lib/server/weeks.ts';
 
-export const load: PageServerLoad = () => {
+export const load: PageServerLoad = ({ locals }) => {
 	const week = getCurrentWeek();
-	if (!week) return { board: null };
-	return { board: getPickBoard(week) };
+	// Owners get the "Next week" button at the bottom of the page.
+	const nextMenu = locals.user.role === 'owner' ? getNextMenuStatus() : null;
+	if (!week) return { board: null, nextMenu };
+	return { board: getPickBoard(week), nextMenu };
 };
 
 export const actions: Actions = {

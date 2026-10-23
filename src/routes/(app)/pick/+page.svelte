@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import NextWeek from '#lib/components/NextWeek.svelte';
 	import OptionCard from '#lib/components/OptionCard.svelte';
 	import type { PageProps } from './$types';
 
@@ -93,9 +94,6 @@
 			<div class="actions">
 				<a class="button light" href="/shop">Grocery list</a>
 				<a class="button light" href="/cook">Prep-day plan</a>
-				{#if canPick && !data.draftLabel}
-					<a class="button ghost" href="/review">Plan next week</a>
-				{/if}
 			</div>
 		</div>
 	{:else}
@@ -107,13 +105,15 @@
 			</p>
 		</div>
 	{/if}
+
+	{#if data.nextMenu}
+		<NextWeek status={data.nextMenu} />
+	{/if}
 {:else}
 	<h1>No menu yet</h1>
-	{#if canPick}
-		<p class="muted">
-			Ask Claude for this week’s options. You’ll review them before they show up here.
-		</p>
-		<a class="button primary" href="/review">Plan the first week</a>
+	{#if data.nextMenu}
+		<p class="muted">Ask Claude for the first menu below.</p>
+		<NextWeek status={data.nextMenu} />
 	{:else}
 		<p class="muted">Lily and Andrei haven’t planned a week yet. Check back soon.</p>
 	{/if}
@@ -181,11 +181,6 @@
 		flex-wrap: wrap;
 		gap: 10px;
 		margin-top: 14px;
-	}
-	.button.ghost {
-		background: transparent;
-		color: var(--callout-ink);
-		border-color: rgb(251 250 247 / 0.4);
 	}
 	.button.light {
 		background: var(--callout-ink);

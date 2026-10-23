@@ -28,18 +28,27 @@ export function todayAtHome(): string {
 	return localTime(getSetting('menu_timezone', 'America/New_York')).date;
 }
 
-export function getReview() {
-	const db = getDb();
+/**
+ * Where next week's menu stands, for the button at the bottom of Pick:
+ * not started, being written by Claude, or a draft waiting for review.
+ */
+export function getNextMenuStatus() {
 	const draft = getDraftWeek();
 	const nextWeekOf = draft?.week_of ?? nextMenuWeekOf(todayAtHome());
 	const run = latestRun(['menu', 'swap'], nextWeekOf);
-
-	const base = {
+	return {
 		claudeReady: claudeConfigured(),
 		nextWeekLabel: formatWeekOf(nextWeekOf),
+		hasDraft: Boolean(draft),
 		working: run?.status === 'running',
 		lastError: run?.status === 'failed' ? run.error : null
 	};
+}
+
+export function getReview() {
+	const db = getDb();
+	const draft = getDraftWeek();
+	const { hasDraft: _hasDraft, ...base } = getNextMenuStatus();
 	if (!draft) return { ...base, draft: null };
 
 	const note = db.prepare('SELECT note FROM week_notes WHERE week_id = ?').get(draft.id) as

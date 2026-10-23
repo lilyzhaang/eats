@@ -85,7 +85,6 @@
 				{#if menuOpen}
 					<div class="menu card">
 						<p class="muted">Signed in as <strong>{data.user.name}</strong></p>
-						<a class="button" href="/review" onclick={() => (menuOpen = false)}>Next week’s menu</a>
 						<a class="button" href="/switch" onclick={() => (menuOpen = false)}>Switch person</a>
 						<form method="POST" action="/signout">
 							<button type="submit" class="button">Sign out</button>

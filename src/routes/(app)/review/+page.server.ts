@@ -42,6 +42,8 @@ export const actions: Actions = {
 		if (!claudeConfigured()) return fail(400, { message: 'Add your Claude API key first.' });
 		const error = await inBackground(generateMenu(nextMenuWeekOf(todayAtHome()), 'owner'));
 		if (error) return fail(400, { message: error });
+		// Started from the Pick page: go to the review page to watch it arrive.
+		redirect(303, '/review');
 	},
 
 	swap: async ({ request, locals }) => {
