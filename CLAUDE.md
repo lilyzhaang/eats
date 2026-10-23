@@ -455,7 +455,7 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Claude is called from the app's server (Claude API, Opus 5.5, structured outputs); prompts live in `prompts/` | Keeps everything in one portable app; no separate scheduler service |
 | Recipe-bank favourites are chosen by the app (avg ≥ 4, picked ≥ half the times offered, not made in 3 weeks); Claude fills any gap | Rule from §7.5; Claude only writes new recipes |
 | One person's "Never" is enough to stop suggesting a recipe | Resolves the open question in §7.3 |
-| Rate shows the most recent finished week (a week finishes when the next menu is approved) | So the debrief happens after cooking, not right at lock-in |
+| Rate shows the most recent locked-in week whose Sunday has arrived (updated Oct 23, 2026; was "most recent finished week") | Rate the week you're cooking before asking for the next menu, so Claude learns from its ratings, tweaks and cravings |
 | Every Claude request is logged with token use; an answer that can't be saved is reused on retry | Cost visibility; never pay twice for one answer |
 | No viewer passcode: anyone with the link can view read-only without signing in; only owners sign in (owner passcode) | Lily's call (Oct 19, 2026): fine to show the app freely as long as visitors can't change anything or see internal data. Supersedes the two-passcode design in §10; changes still server-enforced; drafts, Claude logs and settings stay owner-only; noindex for search engines |
 | Recipe bank page (read-only, Bank tab) and a "Keep screen on" switch on Cook (Screen Wake Lock) | Lily and Andrei's requests, Oct 21, 2026 |
@@ -463,4 +463,6 @@ Per-recipe ingredient lists are in the `Ingredients` tab of the spreadsheet.
 | Every recipe from a creator carries `source_credit` + link, shown on cards and bank pages; the app stores its own wording, never the creator's text | Credit creators; public repo |
 | Models per job: Sonnet 5.5 for menus and swaps, Opus 5.5 for the cook-day plan; grocery list stays rule-based (no Claude) | Balance cost and quality (Oct 23, 2026): recipe writing is fine on Sonnet at half the price; sequencing is the core feature and one small request a week |
 | Plans are stored per set of picks and reused if the picks return to that set; automatic rewrites capped at 3 a week, then an owner taps "Write the plan" | Generate once, store until the next selection; never pay twice; flipping picks can't run up a bill |
+| "Write next week's menu" lives in a Next week card at the bottom of Pick (owners only), not the profile menu; it's offered only once the current week is locked in, with a nudge to rate first | Easier to find; stops menus stacking up weeks ahead; ratings feed the next menu |
+| While a new week is still being picked, Shop and Cook keep showing the last locked-in week | Approving next week's menu early mustn't hide this week's grocery list and plan |
 

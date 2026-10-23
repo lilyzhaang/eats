@@ -3,13 +3,17 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getGroceryList, setGroceryCheck } from '#lib/server/grocery.ts';
-import { getCurrentWeek } from '#lib/server/weeks.ts';
+import { formatWeekOf, getCookingWeek } from '#lib/server/weeks.ts';
 
 export const load: PageServerLoad = () => {
-	const week = getCurrentWeek();
-	// The list only exists once all four slots are agreed (the week is locked in).
-	if (!week || week.status === 'picking') return { list: null };
-	return { list: getGroceryList(week) };
+	// The list exists once all four slots are agreed. While a new week is still
+	// being picked, last week's list stays here (isPrevious) until it locks in.
+	const cooking = getCookingWeek();
+	if (!cooking) return { list: null, shownWeek: null };
+	return {
+		list: getGroceryList(cooking.week),
+		shownWeek: { label: formatWeekOf(cooking.week.week_of), isPrevious: cooking.isPrevious }
+	};
 };
 
 export const actions: Actions = {
@@ -18,7 +22,7 @@ export const actions: Actions = {
 		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 
 		const [id, checked] = String((await request.formData()).get('toggle')).split(':');
-		const week = getCurrentWeek();
+		const week = getCookingWeek()?.week;
 		if (!week || !setGroceryCheck(week, Number(id), locals.user.personaId, checked === '1')) {
 			return fail(400, { message: 'That item isn’t on this week’s list.' });
 		}

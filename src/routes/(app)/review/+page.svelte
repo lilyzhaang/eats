@@ -139,6 +139,13 @@
 		<span class="dot" aria-hidden="true"></span> This usually takes a minute or two. This page updates
 		by itself.
 	</p>
+{:else if review.waitingOn}
+	<h1>Finish picking this week first.</h1>
+	<p class="muted intro">
+		Once you’ve both locked in your picks for the week of {review.waitingOn}, you can ask Claude for
+		the next menu here.
+	</p>
+	<a class="button primary" href="/pick">Go to Pick</a>
 {:else}
 	<h1>Ready for next week?</h1>
 	<p class="muted intro">

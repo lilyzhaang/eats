@@ -6,6 +6,7 @@
 // questions: best meal of the week, and cravings for next week.
 
 import { getDb } from './app-db.ts';
+import { todayAtHome } from './settings.ts';
 import { getOwners, type Owner } from './picks.ts';
 import { SLOTS, type Week } from './weeks.ts';
 
@@ -38,9 +39,10 @@ export type Debrief = {
 };
 
 /**
- * The week to debrief: the most recent finished week (a week finishes when
- * the next week's menu is approved). Before any week has finished, the most
- * recent locked-in one.
+ * The week to debrief: the most recent locked-in week whose Sunday has
+ * arrived, i.e. the week you're cooking or just cooked. That way you can
+ * rate it before asking Claude for next week, so the new menu learns from it.
+ * Before the first week's Sunday, the most recent locked-in week.
  */
 export function getRateWeek(): Week | null {
 	const withPicks =
@@ -49,16 +51,32 @@ export function getRateWeek(): Week | null {
 	return (
 		(db
 			.prepare(
-				`SELECT * FROM weeks WHERE status = 'done' AND ${withPicks} ORDER BY week_of DESC LIMIT 1`
+				`SELECT * FROM weeks WHERE status IN ('locked', 'done') AND week_of <= ? AND ${withPicks}
+				 ORDER BY week_of DESC LIMIT 1`
 			)
-			.get() as Week | undefined) ??
+			.get(todayAtHome()) as Week | undefined) ??
 		(db
 			.prepare(
-				`SELECT * FROM weeks WHERE status = 'locked' AND ${withPicks} ORDER BY week_of DESC LIMIT 1`
+				`SELECT * FROM weeks WHERE status IN ('locked', 'done') AND ${withPicks}
+				 ORDER BY week_of DESC LIMIT 1`
 			)
 			.get() as Week | undefined) ??
 		null
 	);
+}
+
+/** How many of a week's ratings are filled in (each owner rating each meal). */
+export function ratingProgress(week: Week): { done: number; total: number } {
+	const row = getDb()
+		.prepare(
+			`SELECT
+			   (SELECT count(*) FROM ratings ra JOIN offers o ON o.id = ra.offer_id
+			     WHERE o.week_id = :id AND o.is_final_pick = 1 AND ra.stars IS NOT NULL) AS done,
+			   (SELECT count(*) FROM offers WHERE week_id = :id AND is_final_pick = 1)
+			     * (SELECT count(*) FROM personas WHERE role = 'owner') AS total`
+		)
+		.get({ id: week.id }) as { done: number; total: number };
+	return row;
 }
 
 export function getDebrief(week: Week): Debrief {

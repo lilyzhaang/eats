@@ -9,6 +9,8 @@
 		hasDraft: boolean;
 		working: boolean;
 		lastError: string | null;
+		waitingOn: string | null;
+		rateFirst: { label: string; done: number; total: number } | null;
 	};
 	let { status }: { status: Status } = $props();
 </script>
@@ -24,8 +26,21 @@
 		<h2 id="next-week-title">Claude is writing next week’s menu…</h2>
 		<p class="muted">It usually takes a few minutes.</p>
 		<a class="button" href="/review">Watch it arrive</a>
+	{:else if status.waitingOn}
+		<h2 id="next-week-title">Finish picking this week first.</h2>
+		<p class="muted">
+			Once you’ve both locked in your picks for the week of {status.waitingOn}, you can ask Claude
+			for the next one here.
+		</p>
 	{:else if status.claudeReady}
 		<h2 id="next-week-title">Ready for next week?</h2>
+		{#if status.rateFirst}
+			<p class="nudge">
+				Rate the week of {status.rateFirst.label} first, so Claude can learn from it ({status
+					.rateFirst.done} of {status.rateFirst.total} ratings done).
+				<a href="/rate">Rate it</a>
+			</p>
+		{/if}
 		<p class="muted">
 			Claude writes a fresh menu from your ratings, tweaks and cravings. You review it before it
 			shows up here.
@@ -62,5 +77,14 @@
 	}
 	.error {
 		color: var(--accent);
+	}
+	.nudge {
+		background: var(--tag-bank-bg);
+		color: var(--tag-bank-ink);
+		padding: 10px 14px;
+		border-radius: 10px;
+	}
+	.nudge a {
+		font-weight: 600;
 	}
 </style>

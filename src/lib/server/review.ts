@@ -2,11 +2,11 @@
 // the next one (being written, or failed).
 
 import { getDb } from './app-db.ts';
+import { todayAtHome } from './settings.ts';
 import { claudeConfigured, latestRun } from './ai/claude.ts';
 import { nextMenuWeekOf } from './ai/menu.ts';
-import { localTime } from '../dates.ts';
-import { getSetting } from './settings.ts';
-import { formatWeekOf, getDraftWeek, SLOTS } from './weeks.ts';
+import { getRateWeek, ratingProgress } from './ratings.ts';
+import { formatWeekOf, getCurrentWeek, getDraftWeek, SLOTS } from './weeks.ts';
 
 export type ReviewOption = {
 	offerId: number;
@@ -23,10 +23,8 @@ export type ReviewOption = {
 	steps: string[];
 };
 
-/** Today's date where the household is (for working out "next week"). */
-export function todayAtHome(): string {
-	return localTime(getSetting('menu_timezone', 'America/New_York')).date;
-}
+// Kept here too so existing imports keep working.
+export { todayAtHome };
 
 /**
  * Where next week's menu stands, for the button at the bottom of Pick:
@@ -36,19 +34,37 @@ export function getNextMenuStatus() {
 	const draft = getDraftWeek();
 	const nextWeekOf = draft?.week_of ?? nextMenuWeekOf(todayAtHome());
 	const run = latestRun(['menu', 'swap'], nextWeekOf);
+
+	// Only write next week's menu once this week's picks are locked in, so
+	// nobody ends up with menus stacked up weeks ahead.
+	const current = getCurrentWeek();
+	const waitingOn = !draft && current?.status === 'picking' ? formatWeekOf(current.week_of) : null;
+
+	// Nudge to rate the week you're cooking first, so Claude learns from it.
+	const rateWeek = getRateWeek();
+	const progress = rateWeek && rateWeek.week_of <= todayAtHome() ? ratingProgress(rateWeek) : null;
+	const rateFirst =
+		rateWeek && progress && progress.done < progress.total
+			? { label: formatWeekOf(rateWeek.week_of), ...progress }
+			: null;
+
 	return {
 		claudeReady: claudeConfigured(),
 		nextWeekLabel: formatWeekOf(nextWeekOf),
 		hasDraft: Boolean(draft),
 		working: run?.status === 'running',
-		lastError: run?.status === 'failed' ? run.error : null
+		lastError: run?.status === 'failed' ? run.error : null,
+		/** Set while this week is still being picked: finish that first. */
+		waitingOn,
+		/** Set while the week you're cooking still has ratings to fill in. */
+		rateFirst
 	};
 }
 
 export function getReview() {
 	const db = getDb();
 	const draft = getDraftWeek();
-	const { hasDraft: _hasDraft, ...base } = getNextMenuStatus();
+	const { hasDraft: _hasDraft, rateFirst: _rateFirst, ...base } = getNextMenuStatus();
 	if (!draft) return { ...base, draft: null };
 
 	const note = db.prepare('SELECT note FROM week_notes WHERE week_id = ?').get(draft.id) as

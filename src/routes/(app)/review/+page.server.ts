@@ -11,7 +11,7 @@ import {
 	swapOption
 } from '#lib/server/ai/menu.ts';
 import { claudeConfigured } from '#lib/server/ai/claude.ts';
-import { getReview, todayAtHome } from '#lib/server/review.ts';
+import { getNextMenuStatus, getReview, todayAtHome } from '#lib/server/review.ts';
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (locals.user.role !== 'owner') redirect(303, '/pick');
@@ -40,6 +40,12 @@ export const actions: Actions = {
 	generate: async ({ locals }) => {
 		if (locals.user.role !== 'owner') return fail(403, { message: 'Viewing only.' });
 		if (!claudeConfigured()) return fail(400, { message: 'Add your Claude API key first.' });
+		const { waitingOn } = getNextMenuStatus();
+		if (waitingOn) {
+			return fail(400, {
+				message: `Finish picking the week of ${waitingOn} first, then write the next one.`
+			});
+		}
 		const error = await inBackground(generateMenu(nextMenuWeekOf(todayAtHome()), 'owner'));
 		if (error) return fail(400, { message: error });
 		// Started from the Pick page: go to the review page to watch it arrive.

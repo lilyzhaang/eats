@@ -35,6 +35,24 @@ export function getCurrentWeek(): Week | null {
 	);
 }
 
+/**
+ * The week Shop and Cook show: the current week once it's locked in, or,
+ * while the new week is still being picked, the last week that was locked
+ * in, so its grocery list and plan stay available until the new one is ready.
+ */
+export function getCookingWeek(): { week: Week; isPrevious: boolean } | null {
+	const current = getCurrentWeek();
+	if (current && current.status !== 'picking') return { week: current, isPrevious: false };
+	const previous = getDb()
+		.prepare(
+			`SELECT * FROM weeks WHERE is_draft = 0 AND status IN ('locked', 'done')
+			 AND EXISTS (SELECT 1 FROM offers WHERE week_id = weeks.id AND is_final_pick = 1)
+			 ORDER BY week_of DESC LIMIT 1`
+		)
+		.get() as Week | undefined;
+	return previous ? { week: previous, isPrevious: true } : null;
+}
+
 /** A menu Claude wrote that's waiting for an owner to review, if any. */
 export function getDraftWeek(): Week | null {
 	return (

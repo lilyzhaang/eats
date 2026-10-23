@@ -31,8 +31,14 @@
 </svelte:head>
 
 <p class="eyebrow">
-	Grocery list{#if data.week}{' · '}Week of {data.week.label}{/if}
+	Grocery list{#if data.shownWeek}{' · '}Week of {data.shownWeek.label}{/if}
 </p>
+{#if data.shownWeek?.isPrevious}
+	<p class="previous-note">
+		This is the week you’re cooking now. Next week’s appears here once you’ve both locked in its
+		picks.
+	</p>
+{/if}
 
 {#if data.list}
 	<h1>Here’s the haul.</h1>
@@ -138,6 +144,14 @@
 {/if}
 
 <style>
+	.previous-note {
+		background: var(--tag-ai-bg);
+		color: var(--tag-ai-ink);
+		padding: 10px 14px;
+		border-radius: var(--radius);
+		margin: 0 0 16px;
+		font-size: 0.9375rem;
+	}
 	.intro {
 		max-width: 60ch;
 	}
